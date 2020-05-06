@@ -71,6 +71,16 @@ class TestEndpointResolver(unittest.TestCase):
                                 'us-foo': {}
                             }
                         },
+                        'global-service': {
+                            'isRegionalized': False,
+                            'partitionEndpoint': 'aws-global',
+                            'endpoints': {
+                                'aws-global': {'hostname': 'global-endpoint'},
+                                'us-foo': {},
+                                'eu-baz': {},
+                                'af-bar': {}
+                            }
+                        },
                         'merge': {
                             'defaults': {
                                 'signatureVersions': ['v2'],
@@ -180,6 +190,16 @@ class TestEndpointResolver(unittest.TestCase):
         resolver = regions.EndpointResolver(self._template())
         result = resolver.construct_endpoint('unknown', 'us-foo')
         self.assertEqual('unknown.us-foo.amazonaws.com', result['hostname'])
+
+    def test_constructs_endpoints_for_global_service_but_unknown_region(self):
+        resolver = regions.EndpointResolver(self._template())
+        result = resolver.construct_endpoint('global-service', 'us-not-real')
+        self.assertEqual('global-endpoint', result['hostname'])
+
+    def test_constructs_endpoint_for_region_with_unknown_prefix(self):
+        resolver = regions.EndpointResolver(self._template())
+        result = resolver.construct_endpoint('global-service', 'abc-bar')
+        self.assertEqual('global-endpoint', result['hostname'])
 
     def test_merges_service_keys(self):
         resolver = regions.EndpointResolver(self._template())
