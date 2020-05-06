@@ -117,11 +117,16 @@ class EndpointResolver(BaseEndpointResolver):
 
     def construct_endpoint(self, service_name, region_name=None):
         # Iterate over each partition until a match is found.
+        global_endpoint = None
         for partition in self._endpoint_data['partitions']:
-            result = self._endpoint_for_partition(
+            result, is_global = self._endpoint_for_partition(
                 partition, service_name, region_name)
-            if result:
+            if is_global:
+                global_endpoint = result
+            elif result:
                 return result
+
+        return global_endpoint
 
     def _endpoint_for_partition(self, partition, service_name, region_name):
         # Get the service from the partition, or an empty template.
@@ -135,22 +140,25 @@ class EndpointResolver(BaseEndpointResolver):
                 raise NoRegionError()
         # Attempt to resolve the exact region for this partition.
         if region_name in service_data['endpoints']:
-            return self._resolve(
-                partition, service_name, service_data, region_name)
+            return (self._resolve(
+                partition, service_name, service_data, region_name), None)
         # Check to see if the endpoint provided is valid for the partition.
-        if self._region_match(partition, region_name):
+        is_global_endpoint = self._is_global_endpoint(partition, service_data)
+        if self._region_match(partition, region_name) or is_global_endpoint:
             # Use the partition endpoint if set and not regionalized.
             partition_endpoint = service_data.get('partitionEndpoint')
             is_regionalized = service_data.get('isRegionalized', True)
             if partition_endpoint and not is_regionalized:
                 LOG.debug('Using partition endpoint for %s, %s: %s',
                           service_name, region_name, partition_endpoint)
-                return self._resolve(
+                endpoint = self._resolve(
                     partition, service_name, service_data, partition_endpoint)
+                return endpoint, is_global_endpoint
             LOG.debug('Creating a regex based endpoint for %s, %s',
                       service_name, region_name)
             return self._resolve(
-                partition, service_name, service_data, region_name)
+                partition, service_name, service_data, region_name), None
+        return None, None
 
     def _region_match(self, partition, region_name):
         if region_name in partition['regions']:
@@ -158,6 +166,11 @@ class EndpointResolver(BaseEndpointResolver):
         if 'regionRegex' in partition:
             return re.compile(partition['regionRegex']).match(region_name)
         return False
+
+    def _is_global_endpoint(self, partition, service_data):
+        is_aws_partition = partition.get('partition') == 'aws'
+        is_global = not service_data.get('isRegionalized', True)
+        return is_aws_partition and is_global
 
     def _resolve(self, partition, service_name, service_data, endpoint_name):
         result = service_data['endpoints'].get(endpoint_name, {})
