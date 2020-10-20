@@ -51,7 +51,7 @@ from botocore import waiter
 from botocore import retryhandler, translate
 from botocore import utils
 from botocore.utils import EVENT_ALIASES, validate_region_name
-from botocore.compat import MutableMapping
+from botocore.compat import MutableMapping, _warn_deprecated_python
 
 
 logger = logging.getLogger(__name__)
@@ -784,6 +784,7 @@ class Session(object):
         :return: A botocore client instance
 
         """
+        _warn_deprecated_python()
         default_client_config = self.get_default_client_config()
         # If a config is provided and a default config is set, then
         # use the config resulting from merging the two.

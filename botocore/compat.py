@@ -22,7 +22,7 @@ import shlex
 from math import floor
 
 from botocore.vendored import six
-from botocore.exceptions import MD5UnavailableError
+from botocore.exceptions import MD5UnavailableError, PythonDeprecationWarning
 from dateutil.tz import tzlocal
 from urllib3 import exceptions
 
@@ -162,6 +162,19 @@ def filter_ssl_warnings():
         message="A true SSLContext object is not available.*",
         category=exceptions.InsecurePlatformWarning,
         module=r".*urllib3\.util\.ssl_")
+
+
+def filter_python_deprecation_warnings():
+    """
+    Invoking this filter acknowledges your runtime will soon be deprecated
+    at which time you will stop receiving all updates to your client.
+    """
+    warnings.filterwarnings(
+        'ignore',
+        message=".*will no longer support Python.*",
+        category=PythonDeprecationWarning,
+        module=r".*botocore\.compat"
+    )
 
 
 @classmethod
@@ -343,6 +356,24 @@ def get_tzinfo_options():
         return (tzlocal, tzwinlocal)
     else:
         return (tzlocal,)
+
+
+def _warn_deprecated_python():
+    deprecated_versions = ((3,4), (3,5))
+
+    try:
+        py_version = sys.version_info[:2]
+    except:
+        py_version = "unknown"
+
+    if py_version in deprecated_versions:
+        warning = (
+            "The AWS CLI/Boto3 will no longer support Python {}.{} "
+            "starting February 1, 2021. To continue receiving service updates, "
+            "bug fixes, and security updates please upgrade to Python 3.6 or "
+            "later. More information can be found here: <LINK TO BLOG>"
+        ).format(py_version[0], py_version[1])
+        warnings.warn(warning, PythonDeprecationWarning)
 
 
 try:

@@ -449,6 +449,11 @@ class ImminentRemovalWarning(Warning):
     pass
 
 
+class PythonDeprecationWarning(Warning):
+    """Warn when a Python runtime is entering deprecation"""
+    pass
+
+
 class InvalidDNSNameError(BotoCoreError):
     """Error when virtual host path is forced on a non-DNS compatible bucket"""
     fmt = (
