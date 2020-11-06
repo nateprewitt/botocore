@@ -34,6 +34,7 @@ from botocore.compat import six
 from botocore.compat import json
 from botocore.compat import MD5_AVAILABLE
 from botocore.compat import ensure_unicode
+from botocore.compat import awscrt
 
 logger = logging.getLogger(__name__)
 
@@ -613,6 +614,180 @@ class S3SigV4PostAuth(SigV4Auth):
 
         request.context['s3-presign-post-fields'] = fields
         request.context['s3-presign-post-policy'] = policy
+
+
+class CrtSigV4Auth(BaseSigner):
+    REQUIRES_REGION = True
+    _PRESIGNED_HEADERS_BLACKLIST = [
+        'Authorization',
+        'X-Amz-Date',
+        'X-Amz-Content-SHA256',
+        'X-Amz-Security-Token',
+    ]
+    _SIGNATURE_TYPE = awscrt.auth.AwsSignatureType.HTTP_REQUEST_HEADERS
+
+    def __init__(self, credentials, service_name, region_name):
+        self.credentials = credentials
+        self._service_name = service_name
+        self._region_name = region_name
+        self._expiration_in_seconds = None
+
+    def _crt_request_from_aws_request(self, aws_request):
+        url_parts = urlsplit(aws_request.url)
+        crt_path = url_parts.path if url_parts.path else '/'
+        if aws_request.params:
+            array = []
+            for (param, value) in aws_request.params.items():
+                value = str(value)
+                array.append('%s=%s' % (param, value))
+            crt_path = crt_path + '?' + '&'.join(array)
+        elif url_parts.query:
+            crt_path = '%s?%s' % (crt_path, url_parts.query)
+
+        crt_headers = awscrt.http.HttpHeaders(aws_request.headers.items())
+
+        # CRT requires body (if it exists) to be an I/O stream.
+        crt_body_stream = None
+        if aws_request.body:
+            if hasattr(aws_request.body, 'seek'):
+                crt_body_stream = aws_request.body
+            else:
+                crt_body_stream = BytesIO(aws_request.body)
+
+        crt_request = awscrt.http.HttpRequest(
+            method=aws_request.method,
+            path=crt_path,
+            headers=crt_headers,
+            body_stream=crt_body_stream)
+        return crt_request
+
+    def _apply_signing_changes(self, aws_request, signed_crt_request):
+        # Apply changes from signed CRT request to the AWSRequest
+        aws_request.headers = HTTPHeaders.from_pairs(
+            list(signed_crt_request.headers))
+
+        if self._SIGNATURE_TYPE == \
+                awscrt.auth.AwsSignatureType.HTTP_REQUEST_QUERY_PARAMS:
+
+            new_query_string = urlsplit(signed_crt_request.path).query
+            p = urlsplit(aws_request.url)
+            # urlsplit() returns a tuple (and therefore immutable) so we
+            # need to create new url with the new query string.
+            # <part>   - <index>
+            # scheme   - 0
+            # netloc   - 1
+            # path     - 2
+            # query    - 3  <-- we're replacing this.
+            # fragment - 4
+            aws_request.url = urlunsplit(
+                (p[0], p[1], p[2], new_query_string, p[4]))
+
+    def _should_sign_header(self, name, **kwargs):
+        return name.lower() not in SIGNED_HEADERS_BLACKLIST
+
+    def _modify_request_before_signing(self, request):
+        # This could be a retry. Make sure the previous
+        # authorization headers are removed first.
+        for h in self._PRESIGNED_HEADERS_BLACKLIST:
+            if h in request.headers:
+                del request.headers[h]
+        # If necessary, add the host header
+        if 'host' not in request.headers:
+            request.headers['host'] = _host_from_url(request.url)
+
+    def add_auth(self, request):
+        if self.credentials is None:
+            raise NoCredentialsError
+
+        # Use utcnow() because that's what gets mocked by tests, but set
+        # timezone because CRT assumes naive datetime is local time.
+        datetime_now = datetime.datetime.utcnow().replace(
+            tzinfo=datetime.timezone.utc)
+
+        self._modify_request_before_signing(request)
+
+        credentials_provider = awscrt.auth.AwsCredentialsProvider.new_static(
+            access_key_id=self.credentials.access_key,
+            secret_access_key=self.credentials.secret_key,
+            session_token=self.credentials.token)
+
+        if request.context.get('payload_signing_enabled', True):
+            signed_body_value_type = awscrt.auth.AwsSignedBodyValueType.PAYLOAD
+            signed_body_header_type = awscrt.auth.AwsSignedBodyHeaderType.NONE
+        else:
+            signed_body_value_type = \
+                awscrt.auth.AwsSignedBodyValueType.UNSIGNED_PAYLOAD
+            signed_body_header_type = \
+                awscrt.auth.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA_256
+
+        signing_config = awscrt.auth.AwsSigningConfig(
+            algorithm=awscrt.auth.AwsSigningAlgorithm.V4,
+            signature_type=self._SIGNATURE_TYPE,
+            credentials_provider=credentials_provider,
+            region=self._region_name,
+            service=self._service_name,
+            date=datetime_now,
+            should_sign_header=self._should_sign_header,
+            signed_body_value_type=signed_body_value_type,
+            signed_body_header_type=signed_body_header_type,
+            expiration_in_seconds=self._expiration_in_seconds,
+            )
+        crt_request = self._crt_request_from_aws_request(request)
+        future = awscrt.auth.aws_sign_request(crt_request, signing_config)
+        future.result()
+        self._apply_signing_changes(request, crt_request)
+
+
+class CrtSigV4QueryAuth(CrtSigV4Auth):
+    DEFAULT_EXPIRES = 3600
+    _SIGNATURE_TYPE = awscrt.auth.AwsSignatureType.HTTP_REQUEST_QUERY_PARAMS
+
+    def __init__(self, credentials, service_name, region_name,
+                 expires=DEFAULT_EXPIRES):
+        super().__init__(credentials, service_name, region_name)
+        self._expiration_in_seconds = expires
+
+    def _modify_request_before_signing(self, request):
+        super()._modify_request_before_signing(request)
+
+        # We automatically set this header, so if it's the auto-set value we
+        # want to get rid of it since it doesn't make sense for presigned urls.
+        content_type = request.headers.get('content-type')
+        if content_type == 'application/x-www-form-urlencoded; charset=utf-8':
+            del request.headers['content-type']
+
+        # Now parse the original query string to a dict, inject our new query
+        # params, and serialize back to a query string.
+        url_parts = urlsplit(request.url)
+        # parse_qs makes each value a list, but in our case we know we won't
+        # have repeated keys so we know we have single element lists which we
+        # can convert back to scalar values.
+        query_dict = dict(
+            [(k, v[0]) for k, v in
+             parse_qs(url_parts.query, keep_blank_values=True).items()])
+        # The spec is particular about this.  It *has* to be:
+        # https://<endpoint>?<operation params>&<auth params>
+        # You can't mix the two types of params together, i.e just keep doing
+        # new_query_params.update(op_params)
+        # new_query_params.update(auth_params)
+        # percent_encode_sequence(new_query_params)
+        if request.data:
+            # We also need to move the body params into the query string. To
+            # do this, we first have to convert it to a dict.
+            query_dict.update(_get_body_as_dict(request))
+            request.data = ''
+        new_query_string = percent_encode_sequence(query_dict)
+        # url_parts is a tuple (and therefore immutable) so we need to create
+        # a new url_parts with the new query string.
+        # <part>   - <index>
+        # scheme   - 0
+        # netloc   - 1
+        # path     - 2
+        # query    - 3  <-- we're replacing this.
+        # fragment - 4
+        p = url_parts
+        new_url_parts = (p[0], p[1], p[2], new_query_string, p[4])
+        request.url = urlunsplit(new_url_parts)
 
 
 class HmacV1Auth(BaseSigner):
