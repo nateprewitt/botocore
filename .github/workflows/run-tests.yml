@@ -34,9 +34,13 @@ jobs:
     - name: Run tests
       run: |
         python scripts/ci/run-tests
-
     - name: codecov
       run: |
         rm tests/coverage.xml
         mv tests/.coverage ./
         codecov
+    - if: matrix.python-version >= 3.6
+      name: Run CRT tests
+      run: |
+          pip install awscrt
+          python scripts/ci/run-crt-tests
