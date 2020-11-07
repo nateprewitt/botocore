@@ -22,7 +22,7 @@ import mock
 
 import botocore.auth
 import botocore.credentials
-from botocore.compat import HTTPHeaders, urlsplit, parse_qs, six
+from botocore.compat import HTTPHeaders, urlsplit, parse_qs, six, HAS_CRT
 from botocore.awsrequest import AWSRequest
 
 
@@ -429,10 +429,11 @@ class TestS3SigV4Auth(BaseTestWithFixedDate):
         self.assertNotEqual(sha_header, 'UNSIGNED-PAYLOAD')
 
 
-class TestCrtS3SigV4Auth(TestS3SigV4Auth):
-    # Repeat TestS3SigV4Auth tests, but using CRT signer
+if HAS_CRT:
+    class TestCrtS3SigV4Auth(TestS3SigV4Auth):
+        # Repeat TestS3SigV4Auth tests, but using CRT signer
 
-    AuthClass = botocore.auth.CrtS3SigV4Auth
+        AuthClass = botocore.crt.auth.CrtS3SigV4Auth
 
 
 class TestSigV4(unittest.TestCase):
@@ -624,9 +625,10 @@ class TestSigV4Resign(BaseTestWithFixedDate):
                          [original_auth])
 
 
-class TestCrtSigV4Resign(TestSigV4Resign):
-    # Run same tests against CRT auth
-    AuthClass = botocore.auth.CrtSigV4Auth
+if HAS_CRT:
+    class TestCrtSigV4Resign(TestSigV4Resign):
+        # Run same tests against CRT auth
+        AuthClass = botocore.crt.auth.CrtSigV4Auth
 
 
 class BasePresignTest(unittest.TestCase):
@@ -892,15 +894,16 @@ class TestSigV4Presign(BasePresignTest):
         self.assertNotIn('content-type', signed_headers)
 
 
-class TestCrtSigV4Presign(TestSigV4Presign):
-    # Run same tests against CRT auth
-    AuthClass = botocore.auth.CrtSigV4QueryAuth
+if HAS_CRT:
+    class TestCrtSigV4Presign(TestSigV4Presign):
+        # Run same tests against CRT auth
+        AuthClass = botocore.crt.auth.CrtSigV4QueryAuth
 
-    def setUp(self):
-        # Use CRT logging to see interim steps (canonical request, etc)
-        # import awscrt.io
-        # awscrt.io.init_logging(awscrt.io.LogLevel.Trace, 'stderr')
-        super().setUp()
+        def setUp(self):
+            # Use CRT logging to see interim steps (canonical request, etc)
+            # import awscrt.io
+            # awscrt.io.init_logging(awscrt.io.LogLevel.Trace, 'stderr')
+            super().setUp()
 
 
 class BaseS3PresignPostTest(unittest.TestCase):
