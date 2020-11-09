@@ -50,7 +50,9 @@ setup(
                   'botocore.vendored.requests': ['*.pem']},
     include_package_data=True,
     install_requires=requires,
-    extras_require={},
+    extras_require={
+        'awscrt:python_version>"3.6"': ['awscrt == 0.9.1']
+    },
     license="Apache License 2.0",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -67,5 +69,5 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-    ]
+    ],
 )
