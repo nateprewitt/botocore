@@ -43,4 +43,4 @@ jobs:
       name: Run CRT tests
       run: |
           pip install awscrt
-          python scripts/ci/run-tests
+          python scripts/ci/run-crt-tests
