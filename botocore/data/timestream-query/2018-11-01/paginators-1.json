@@ -5,8 +5,7 @@
       "limit_key": "MaxRows",
       "non_aggregate_keys": [
         "ColumnInfo",
-        "QueryId",
-        "QueryStatus"
+        "QueryId"
       ],
       "output_token": "NextToken",
       "result_key": "Rows"

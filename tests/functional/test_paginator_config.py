@@ -120,6 +120,7 @@ KNOWN_EXTRA_OUTPUT_KEYS = [
     'storagegateway.DescribeTapeRecoveryPoints.GatewayARN',
     'storagegateway.DescribeVTLDevices.GatewayARN',
     'storagegateway.ListVolumes.GatewayARN',
+    'timestream-query.Query.QueryStatus',
     'workdocs.DescribeUsers.TotalNumberOfUsers',
     'xray.BatchGetTraces.UnprocessedTraceIds',
     'xray.GetServiceGraph.EndTime',
