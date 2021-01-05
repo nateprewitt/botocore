@@ -282,3 +282,13 @@ class CrtS3SigV4QueryAuth(CrtSigV4QueryAuth):
     def _should_add_content_sha256_header(self, explicit_payload):
         # Never add X-Amz-Content-SHA256 header
         return False
+
+
+# Defined at the bottom of module to ensure all Auth
+# classes are defined.
+CRT_AUTH_TYPE_MAPS = {
+    'v4': CrtSigV4Auth,
+    'v4-query': CrtSigV4QueryAuth,
+    's3v4': CrtS3SigV4Auth,
+    's3v4-query': CrtS3SigV4QueryAuth,
+}

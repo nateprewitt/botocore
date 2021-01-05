@@ -24,4 +24,4 @@ except ImportError:
 
 
 run('nosetests --with-coverage --cover-erase --cover-package botocore '
-    '--with-xunit --cover-xml unit/crt functional/crt')
+    '--with-xunit --cover-xml unit/ functional/')

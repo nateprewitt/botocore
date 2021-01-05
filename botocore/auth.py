@@ -858,31 +858,7 @@ class HmacV1PostAuth(HmacV1Auth):
         request.context['s3-presign-post-policy'] = policy
 
 
-if HAS_CRT:
-    from botocore.crt.auth import (
-        CrtSigV4Auth,
-        CrtSigV4QueryAuth,
-        CrtS3SigV4Auth,
-        CrtS3SigV4QueryAuth
-    )
-    AUTH_TYPE_MAPS = {
-        'v4': CrtSigV4Auth,
-        'v4-query': CrtSigV4QueryAuth,
-        's3v4': CrtS3SigV4Auth,
-        's3v4-query': CrtS3SigV4QueryAuth,
-    }
-else:
-    AUTH_TYPE_MAPS = {
-        'v4': SigV4Auth,
-        'v4-query': SigV4QueryAuth,
-        's3v4': S3SigV4Auth,
-        's3v4-query': S3SigV4QueryAuth,
-    }
-
-
-# Defined at the bottom instead of the top of the module because the Auth
-# classes weren't defined yet.
-AUTH_TYPE_MAPS.update({
+AUTH_TYPE_MAPS = {
     'v2': SigV2Auth,
     'v3': SigV3Auth,
     'v3https': SigV3Auth,
@@ -890,4 +866,16 @@ AUTH_TYPE_MAPS.update({
     's3-query': HmacV1QueryAuth,
     's3-presign-post': HmacV1PostAuth,
     's3v4-presign-post': S3SigV4PostAuth,
-})
+}
+
+# Define v4 signers depending on if CRT is present
+if HAS_CRT:
+    from botocore.crt.auth import CRT_AUTH_TYPE_MAPS
+    AUTH_TYPE_MAPS.update(CRT_AUTH_TYPE_MAPS)
+else:
+    AUTH_TYPE_MAPS.update({
+        'v4': SigV4Auth,
+        'v4-query': SigV4QueryAuth,
+        's3v4': S3SigV4Auth,
+        's3v4-query': S3SigV4QueryAuth,
+    })
