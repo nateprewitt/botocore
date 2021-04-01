@@ -19,6 +19,7 @@ import warnings
 import hashlib
 import logging
 import shlex
+import os
 from math import floor
 
 from botocore.vendored import six
