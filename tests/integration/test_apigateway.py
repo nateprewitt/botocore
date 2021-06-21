@@ -21,19 +21,20 @@ from botocore import exceptions
 class TestApigateway(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client('apigateway', 'us-east-1')
+        self.client = self.session.create_client("apigateway", "us-east-1")
 
         # Create a resource to use with this client.
-        self.api_name = 'mytestapi'
+        self.api_name = "mytestapi"
         self.api_id = self.create_rest_api_or_skip()
 
     def create_rest_api_or_skip(self):
         try:
-            api_id = self.client.create_rest_api(name=self.api_name)['id']
+            api_id = self.client.create_rest_api(name=self.api_name)["id"]
         except exceptions.ClientError as e:
-            if e.response['Error']['Code'] == 'TooManyRequestsException':
+            if e.response["Error"]["Code"] == "TooManyRequestsException":
                 raise unittest.SkipTest(
-                    "Hit API gateway throttle limit, skipping test.")
+                    "Hit API gateway throttle limit, skipping test."
+                )
             raise
         return api_id
 
@@ -44,7 +45,7 @@ class TestApigateway(unittest.TestCase):
                 self.client.delete_rest_api(restApiId=self.api_id)
                 break
             except exceptions.ClientError as e:
-                if e.response['Error']['Code'] == 'TooManyRequestsException':
+                if e.response["Error"]["Code"] == "TooManyRequestsException":
                     retries += 1
                     time.sleep(5)
                 else:
@@ -55,25 +56,26 @@ class TestApigateway(unittest.TestCase):
 
     def test_put_integration(self):
         # The only resource on a brand new api is the path. So use that ID.
-        path_resource_id = self.client.get_resources(
-            restApiId=self.api_id)['items'][0]['id']
+        path_resource_id = self.client.get_resources(restApiId=self.api_id)["items"][0][
+            "id"
+        ]
 
         # Create a method for the resource.
         self.client.put_method(
             restApiId=self.api_id,
             resourceId=path_resource_id,
-            httpMethod='GET',
-            authorizationType='None'
+            httpMethod="GET",
+            authorizationType="None",
         )
 
         # Put an integration on the method.
         response = self.client.put_integration(
             restApiId=self.api_id,
             resourceId=path_resource_id,
-            httpMethod='GET',
-            type='HTTP',
-            integrationHttpMethod='GET',
-            uri='https://api.endpoint.com'
+            httpMethod="GET",
+            type="HTTP",
+            integrationHttpMethod="GET",
+            uri="https://api.endpoint.com",
         )
         # Assert the response was successful by checking the integration type
-        self.assertEqual(response['type'], 'HTTP')
+        self.assertEqual(response["type"], "HTTP")

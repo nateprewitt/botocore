@@ -18,17 +18,16 @@ from tests import BaseSessionTest, ClientHTTPStubber
 class TestCloudsearchdomain(BaseSessionTest):
     def setUp(self):
         super(TestCloudsearchdomain, self).setUp()
-        self.region = 'us-west-2'
-        self.client = self.session.create_client(
-            'cloudsearchdomain', self.region)
+        self.region = "us-west-2"
+        self.client = self.session.create_client("cloudsearchdomain", self.region)
         self.http_stubber = ClientHTTPStubber(self.client)
 
     def test_search(self):
-        self.http_stubber.add_response(body=b'{}')
+        self.http_stubber.add_response(body=b"{}")
         with self.http_stubber:
-            self.client.search(query='foo')
+            self.client.search(query="foo")
             request = self.http_stubber.requests[0]
-            self.assertIn('q=foo', request.body)
-            self.assertEqual(request.method, 'POST')
-            content_type = b'application/x-www-form-urlencoded'
-            self.assertEqual(request.headers.get('Content-Type'), content_type)
+            self.assertIn("q=foo", request.body)
+            self.assertEqual(request.method, "POST")
+            content_type = b"application/x-www-form-urlencoded"
+            self.assertEqual(request.headers.get("Content-Type"), content_type)

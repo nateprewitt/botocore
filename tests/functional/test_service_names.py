@@ -15,8 +15,7 @@ import re
 from nose.tools import assert_true
 from botocore.session import get_session
 
-BLACKLIST = [
-]
+BLACKLIST = []
 
 
 # Service names are limited here to 50 characters here as that seems like a
@@ -24,15 +23,17 @@ BLACKLIST = [
 # blacklist above to be given an exception.
 VALID_NAME_REGEX = re.compile(
     (
-        '[a-z]'           # Starts with a letter
-        '[a-z0-9]*'       # Followed by any number of letters or digits
-        '(-[a-z0-9]+)*$'  # Dashes are allowed as long as they aren't
-                          # consecutive or at the end
-    ), re.M)
+        "[a-z]"  # Starts with a letter
+        "[a-z0-9]*"  # Followed by any number of letters or digits
+        "(-[a-z0-9]+)*$"  # Dashes are allowed as long as they aren't
+        # consecutive or at the end
+    ),
+    re.M,
+)
 VALID_NAME_EXPLANATION = (
-    'Service names must be made up entirely of lowercase alphanumeric '
-    'characters and dashes. The name must start with a letter and may not end '
-    'with a dash'
+    "Service names must be made up entirely of lowercase alphanumeric "
+    "characters and dashes. The name must start with a letter and may not end "
+    "with a dash"
 )
 MIN_SERVICE_NAME_LENGTH = 2
 MAX_SERVICE_NAME_LENGTH = 50
@@ -41,12 +42,14 @@ MAX_SERVICE_NAME_LENGTH = 50
 def _assert_name_length(service_name):
     if service_name not in BLACKLIST:
         service_name_length = len(service_name)
-        assert_true(service_name_length >= MIN_SERVICE_NAME_LENGTH,
-                    'Service name must be greater than or equal to 2 '
-                    'characters in length.')
-        assert_true(service_name_length <= MAX_SERVICE_NAME_LENGTH,
-                    'Service name must be less than or equal to 50 '
-                    'characters in length.')
+        assert_true(
+            service_name_length >= MIN_SERVICE_NAME_LENGTH,
+            "Service name must be greater than or equal to 2 " "characters in length.",
+        )
+        assert_true(
+            service_name_length <= MAX_SERVICE_NAME_LENGTH,
+            "Service name must be less than or equal to 50 " "characters in length.",
+        )
 
 
 def _assert_name_pattern(service_name):
@@ -57,8 +60,8 @@ def _assert_name_pattern(service_name):
 
 def test_service_names_are_valid():
     session = get_session()
-    loader = session.get_component('data_loader')
-    service_names = loader.list_available_services('service-2')
+    loader = session.get_component("data_loader")
+    service_names = loader.list_available_services("service-2")
     for service_name in service_names:
         yield _assert_name_length, service_name
         yield _assert_name_pattern, service_name

@@ -19,15 +19,14 @@ from botocore.exceptions import ClientError
 class TestCloudformation(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client('cloudformation', 'us-east-1')
+        self.client = self.session.create_client("cloudformation", "us-east-1")
 
     def test_handles_errors_with_template_body(self):
         # GetTemplate has a customization in handlers.py, so we're ensuring
         # it handles the case when a stack does not exist.
         with self.assertRaises(ClientError):
-            self.client.get_template(
-                StackName='does-not-exist-%s' % random_chars(10))
+            self.client.get_template(StackName="does-not-exist-%s" % random_chars(10))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

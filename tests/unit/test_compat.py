@@ -17,8 +17,14 @@ from nose.tools import assert_equal, assert_raises
 
 from botocore.exceptions import MD5UnavailableError
 from botocore.compat import (
-    total_seconds, unquote_str, six, ensure_bytes, get_md5,
-    compat_shell_split, get_tzinfo_options, HAS_CRT
+    total_seconds,
+    unquote_str,
+    six,
+    ensure_bytes,
+    get_md5,
+    compat_shell_split,
+    get_tzinfo_options,
+    HAS_CRT,
 )
 from tests import BaseEnvVar, unittest
 
@@ -36,48 +42,48 @@ class TotalSecondsTest(BaseEnvVar):
 
 class TestUnquoteStr(unittest.TestCase):
     def test_unquote_str(self):
-        value = u'%E2%9C%93'
+        value = u"%E2%9C%93"
         # Note: decoded to unicode and utf-8 decoded as well.
         # This would work in python2 and python3.
-        self.assertEqual(unquote_str(value), u'\u2713')
+        self.assertEqual(unquote_str(value), u"\u2713")
 
     def test_unquote_normal(self):
-        value = u'foo'
+        value = u"foo"
         # Note: decoded to unicode and utf-8 decoded as well.
         # This would work in python2 and python3.
-        self.assertEqual(unquote_str(value), u'foo')
+        self.assertEqual(unquote_str(value), u"foo")
 
     def test_unquote_with_spaces(self):
-        value = u'foo+bar'
+        value = u"foo+bar"
         # Note: decoded to unicode and utf-8 decoded as well.
         # This would work in python2 and python3.
-        self.assertEqual(unquote_str(value), 'foo bar')
+        self.assertEqual(unquote_str(value), "foo bar")
 
 
 class TestEnsureBytes(unittest.TestCase):
     def test_string(self):
-        value = 'foo'
+        value = "foo"
         response = ensure_bytes(value)
         self.assertIsInstance(response, six.binary_type)
-        self.assertEqual(response, b'foo')
+        self.assertEqual(response, b"foo")
 
     def test_binary(self):
-        value = b'bar'
+        value = b"bar"
         response = ensure_bytes(value)
         self.assertIsInstance(response, six.binary_type)
-        self.assertEqual(response, b'bar')
+        self.assertEqual(response, b"bar")
 
     def test_unicode(self):
-        value = u'baz'
+        value = u"baz"
         response = ensure_bytes(value)
         self.assertIsInstance(response, six.binary_type)
-        self.assertEqual(response, b'baz')
+        self.assertEqual(response, b"baz")
 
     def test_non_ascii(self):
-        value = u'\u2713'
+        value = u"\u2713"
         response = ensure_bytes(value)
         self.assertIsInstance(response, six.binary_type)
-        self.assertEqual(response, b'\xe2\x9c\x93')
+        self.assertEqual(response, b"\xe2\x9c\x93")
 
     def test_non_string_or_bytes_raises_error(self):
         value = 500
@@ -88,38 +94,38 @@ class TestEnsureBytes(unittest.TestCase):
 class TestGetMD5(unittest.TestCase):
     def test_available(self):
         md5 = mock.Mock()
-        with mock.patch('botocore.compat.MD5_AVAILABLE', True):
-            with mock.patch('hashlib.md5', mock.Mock(return_value=md5)):
+        with mock.patch("botocore.compat.MD5_AVAILABLE", True):
+            with mock.patch("hashlib.md5", mock.Mock(return_value=md5)):
                 self.assertEqual(get_md5(), md5)
 
     def test_unavailable_raises_error(self):
-        with mock.patch('botocore.compat.MD5_AVAILABLE', False):
+        with mock.patch("botocore.compat.MD5_AVAILABLE", False):
             with self.assertRaises(MD5UnavailableError):
                 get_md5()
 
 
 def test_compat_shell_split_windows():
     windows_cases = {
-        r'': [],
-        r'spam \\': [r'spam', '\\\\'],
-        r'spam ': [r'spam'],
-        r' spam': [r'spam'],
-        'spam eggs': [r'spam', r'eggs'],
-        'spam\teggs': [r'spam', r'eggs'],
-        'spam\neggs': ['spam\neggs'],
-        '""': [''],
-        '" "': [' '],
-        '"\t"': ['\t'],
-        '\\\\': ['\\\\'],
-        '\\\\ ': ['\\\\'],
-        '\\\\\t': ['\\\\'],
-        r'\"': ['"'],
+        r"": [],
+        r"spam \\": [r"spam", "\\\\"],
+        r"spam ": [r"spam"],
+        r" spam": [r"spam"],
+        "spam eggs": [r"spam", r"eggs"],
+        "spam\teggs": [r"spam", r"eggs"],
+        "spam\neggs": ["spam\neggs"],
+        '""': [""],
+        '" "': [" "],
+        '"\t"': ["\t"],
+        "\\\\": ["\\\\"],
+        "\\\\ ": ["\\\\"],
+        "\\\\\t": ["\\\\"],
+        r"\"": ['"'],
         # The following four test cases are official test cases given in
         # Microsoft's documentation.
-        r'"abc" d e': [r'abc', r'd', r'e'],
-        r'a\\b d"e f"g h': [r'a\\b', r'de fg', r'h'],
-        r'a\\\"b c d': [r'a\"b', r'c', r'd'],
-        r'a\\\\"b c" d e': [r'a\\b c', r'd', r'e']
+        r'"abc" d e': [r"abc", r"d", r"e"],
+        r'a\\b d"e f"g h': [r"a\\b", r"de fg", r"h"],
+        r"a\\\"b c d": [r"a\"b", r"c", r"d"],
+        r'a\\\\"b c" d e': [r"a\\b c", r"d", r"e"],
     }
     runner = ShellSplitTestRunner()
     for input_string, expected_output in windows_cases.items():
@@ -130,26 +136,26 @@ def test_compat_shell_split_windows():
 
 def test_compat_shell_split_unix():
     unix_cases = {
-        r'': [],
-        r'spam \\': [r'spam', '\\'],
-        r'spam ': [r'spam'],
-        r' spam': [r'spam'],
-        'spam eggs': [r'spam', r'eggs'],
-        'spam\teggs': [r'spam', r'eggs'],
-        'spam\neggs': ['spam', 'eggs'],
-        '""': [''],
-        '" "': [' '],
-        '"\t"': ['\t'],
-        '\\\\': ['\\'],
-        '\\\\ ': ['\\'],
-        '\\\\\t': ['\\'],
-        r'\"': ['"'],
+        r"": [],
+        r"spam \\": [r"spam", "\\"],
+        r"spam ": [r"spam"],
+        r" spam": [r"spam"],
+        "spam eggs": [r"spam", r"eggs"],
+        "spam\teggs": [r"spam", r"eggs"],
+        "spam\neggs": ["spam", "eggs"],
+        '""': [""],
+        '" "': [" "],
+        '"\t"': ["\t"],
+        "\\\\": ["\\"],
+        "\\\\ ": ["\\"],
+        "\\\\\t": ["\\"],
+        r"\"": ['"'],
         # The following four test cases are official test cases given in
         # Microsoft's documentation, but adapted to unix shell splitting.
-        r'"abc" d e': [r'abc', r'd', r'e'],
-        r'a\\b d"e f"g h': [r'a\b', r'de fg', r'h'],
-        r'a\\\"b c d': [r'a\"b', r'c', r'd'],
-        r'a\\\\"b c" d e': [r'a\\b c', r'd', r'e']
+        r'"abc" d e': [r"abc", r"d", r"e"],
+        r'a\\b d"e f"g h': [r"a\b", r"de fg", r"h"],
+        r"a\\\"b c d": [r"a\"b", r"c", r"d"],
+        r'a\\\\"b c" d e': [r"a\\b c", r"d", r"e"],
     }
     runner = ShellSplitTestRunner()
     for input_string, expected_output in unix_cases.items():
@@ -181,6 +187,7 @@ class TestCRTIntegration(unittest.TestCase):
     def test_has_crt_global(self):
         try:
             import awscrt.auth
+
             assert HAS_CRT
         except ImportError:
             assert not HAS_CRT

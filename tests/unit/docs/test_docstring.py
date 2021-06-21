@@ -33,21 +33,24 @@ class TestLazyLoadedDocstring(unittest.TestCase):
 
     def test_expandtabs(self):
         docstring = MockedLazyLoadedDocstring()
-        docstring.mocked_writer_method.side_effect = (
-            lambda section: section.write('foo\t'))
-        self.assertEqual('foo ', docstring.expandtabs(1))
+        docstring.mocked_writer_method.side_effect = lambda section: section.write(
+            "foo\t"
+        )
+        self.assertEqual("foo ", docstring.expandtabs(1))
 
     def test_str(self):
         docstring = MockedLazyLoadedDocstring()
-        docstring.mocked_writer_method.side_effect = (
-            lambda section: section.write('foo'))
-        self.assertEqual('foo', str(docstring))
+        docstring.mocked_writer_method.side_effect = lambda section: section.write(
+            "foo"
+        )
+        self.assertEqual("foo", str(docstring))
 
     def test_repr(self):
         docstring = MockedLazyLoadedDocstring()
-        docstring.mocked_writer_method.side_effect = (
-            lambda section: section.write('foo'))
-        self.assertEqual('foo', repr(docstring))
+        docstring.mocked_writer_method.side_effect = lambda section: section.write(
+            "foo"
+        )
+        self.assertEqual("foo", repr(docstring))
 
     def test_is_lazy_loaded(self):
         docstring = MockedLazyLoadedDocstring()
@@ -57,20 +60,19 @@ class TestLazyLoadedDocstring(unittest.TestCase):
         docstring.mocked_writer_method.assert_called_once_with(mock.ANY)
 
     def test_args_kwargs_passed(self):
-        args = ['foo', 'bar']
-        kwargs = {'biz': 'baz'}
+        args = ["foo", "bar"]
+        kwargs = {"biz": "baz"}
         docstring = MockedLazyLoadedDocstring(*args, **kwargs)
         str(docstring)
         # The mock.ANY represents the DocumentStructure that is filled out.
-        docstring.mocked_writer_method.assert_called_with(
-            mock.ANY, *args, **kwargs)
+        docstring.mocked_writer_method.assert_called_with(mock.ANY, *args, **kwargs)
 
 
 class TestClientMethodDocstring(unittest.TestCase):
     def test_use_correct_docstring_writer(self):
         with mock.patch(
-                'botocore.docs.docstring'
-                '.document_model_driven_method') as mock_writer:
+            "botocore.docs.docstring" ".document_model_driven_method"
+        ) as mock_writer:
             docstring = ClientMethodDocstring()
             str(docstring)
             self.assertTrue(mock_writer.called)
@@ -79,8 +81,8 @@ class TestClientMethodDocstring(unittest.TestCase):
 class TestWaiterDocstring(unittest.TestCase):
     def test_use_correct_docstring_writer(self):
         with mock.patch(
-                'botocore.docs.docstring'
-                '.document_wait_method') as mock_writer:
+            "botocore.docs.docstring" ".document_wait_method"
+        ) as mock_writer:
             docstring = WaiterDocstring()
             str(docstring)
             self.assertTrue(mock_writer.called)
@@ -89,8 +91,8 @@ class TestWaiterDocstring(unittest.TestCase):
 class TestPaginatorDocstring(unittest.TestCase):
     def test_use_correct_docstring_writer(self):
         with mock.patch(
-                'botocore.docs.docstring'
-                '.document_paginate_method') as mock_writer:
+            "botocore.docs.docstring" ".document_paginate_method"
+        ) as mock_writer:
             docstring = PaginatorDocstring()
             str(docstring)
             self.assertTrue(mock_writer.called)

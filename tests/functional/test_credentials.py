@@ -88,16 +88,14 @@ class TestCredentialRefreshRaces(unittest.TestCase):
 
     def test_has_no_race_conditions(self):
         creds = IntegerRefresher(
-            creds_last_for=2,
-            advisory_refresh=1,
-            mandatory_refresh=0
+            creds_last_for=2, advisory_refresh=1, mandatory_refresh=0
         )
+
         def _run_in_thread(collected):
             for _ in range(4000):
                 frozen = creds.get_frozen_credentials()
-                collected.append((frozen.access_key,
-                                  frozen.secret_key,
-                                  frozen.token))
+                collected.append((frozen.access_key, frozen.secret_key, frozen.token))
+
         start = time.time()
         self.assert_consistent_credentials_seen(creds, _run_in_thread)
         end = time.time()
@@ -105,39 +103,36 @@ class TestCredentialRefreshRaces(unittest.TestCase):
         # So, for example, if execution time took 6.1 seconds, then
         # we should see a maximum number of refreshes being (6 / 2.0) + 1 = 4
         max_calls_allowed = math.ceil((end - start) / 2.0) + 1
-        self.assertTrue(creds.refresh_counter <= max_calls_allowed,
-                        "Too many cred refreshes, max: %s, actual: %s, "
-                        "time_delta: %.4f" % (max_calls_allowed,
-                                              creds.refresh_counter,
-                                              (end - start)))
+        self.assertTrue(
+            creds.refresh_counter <= max_calls_allowed,
+            "Too many cred refreshes, max: %s, actual: %s, "
+            "time_delta: %.4f"
+            % (max_calls_allowed, creds.refresh_counter, (end - start)),
+        )
 
     def test_no_race_for_immediate_advisory_expiration(self):
         creds = IntegerRefresher(
-            creds_last_for=1,
-            advisory_refresh=1,
-            mandatory_refresh=0
+            creds_last_for=1, advisory_refresh=1, mandatory_refresh=0
         )
+
         def _run_in_thread(collected):
             for _ in range(100):
                 frozen = creds.get_frozen_credentials()
-                collected.append((frozen.access_key,
-                                  frozen.secret_key,
-                                  frozen.token))
+                collected.append((frozen.access_key, frozen.secret_key, frozen.token))
+
         self.assert_consistent_credentials_seen(creds, _run_in_thread)
 
     def test_no_race_for_initial_refresh_of_deferred_refreshable(self):
         def get_credentials():
-            expiry_time = (
-                datetime.now(tzlocal()) + timedelta(hours=24)).isoformat()
+            expiry_time = (datetime.now(tzlocal()) + timedelta(hours=24)).isoformat()
             return {
-                'access_key': 'my-access-key',
-                'secret_key': 'my-secret-key',
-                'token': 'my-token',
-                'expiry_time': expiry_time
+                "access_key": "my-access-key",
+                "secret_key": "my-secret-key",
+                "token": "my-token",
+                "expiry_time": expiry_time,
             }
 
-        deferred_creds = DeferredRefreshableCredentials(
-            get_credentials, 'fixed')
+        deferred_creds = DeferredRefreshableCredentials(get_credentials, "fixed")
 
         def _run_in_thread(collected):
             frozen = deferred_creds.get_frozen_credentials()
@@ -150,9 +145,9 @@ class BaseAssumeRoleTest(BaseEnvVar):
     def setUp(self):
         super(BaseAssumeRoleTest, self).setUp()
         self.tempdir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.tempdir, 'config')
-        self.environ['AWS_CONFIG_FILE'] = self.config_file
-        self.environ['AWS_SHARED_CREDENTIALS_FILE'] = str(uuid.uuid4())
+        self.config_file = os.path.join(self.tempdir, "config")
+        self.environ["AWS_CONFIG_FILE"] = self.config_file
+        self.environ["AWS_SHARED_CREDENTIALS_FILE"] = str(uuid.uuid4())
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
@@ -167,25 +162,25 @@ class BaseAssumeRoleTest(BaseEnvVar):
             expiration = self.some_future_time()
 
         response = {
-            'Credentials': {
-                'AccessKeyId': credentials.access_key,
-                'SecretAccessKey': credentials.secret_key,
-                'SessionToken': credentials.token,
-                'Expiration': expiration
+            "Credentials": {
+                "AccessKeyId": credentials.access_key,
+                "SecretAccessKey": credentials.secret_key,
+                "SessionToken": credentials.token,
+                "Expiration": expiration,
             },
-            'AssumedRoleUser': {
-                'AssumedRoleId': 'myroleid',
-                'Arn': 'arn:aws:iam::1234567890:user/myuser'
-            }
+            "AssumedRoleUser": {
+                "AssumedRoleId": "myroleid",
+                "Arn": "arn:aws:iam::1234567890:user/myuser",
+            },
         }
 
         return response
 
     def create_random_credentials(self):
         return Credentials(
-            'fake-%s' % random_chars(15),
-            'fake-%s' % random_chars(35),
-            'fake-%s' % random_chars(45)
+            "fake-%s" % random_chars(15),
+            "fake-%s" % random_chars(35),
+            "fake-%s" % random_chars(45),
         )
 
     def assert_creds_equal(self, c1, c2):
@@ -198,15 +193,15 @@ class BaseAssumeRoleTest(BaseEnvVar):
         self.assertEqual(c1_frozen, c2_frozen)
 
     def write_config(self, config):
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, "w") as f:
             f.write(config)
 
 
 class TestAssumeRole(BaseAssumeRoleTest):
     def setUp(self):
         super(TestAssumeRole, self).setUp()
-        self.environ['AWS_ACCESS_KEY_ID'] = 'access_key'
-        self.environ['AWS_SECRET_ACCESS_KEY'] = 'secret_key'
+        self.environ["AWS_ACCESS_KEY_ID"] = "access_key"
+        self.environ["AWS_SECRET_ACCESS_KEY"] = "secret_key"
 
         self.metadata_provider = self.mock_provider(InstanceMetadataProvider)
         self.env_provider = self.mock_provider(EnvProvider)
@@ -215,12 +210,8 @@ class TestAssumeRole(BaseAssumeRoleTest):
         self.actual_client_region = None
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        credential_process = os.path.join(
-            current_dir, 'utils', 'credentialprocess.py'
-        )
-        self.credential_process = '%s %s' % (
-            sys.executable, credential_process
-        )
+        credential_process = os.path.join(current_dir, "utils", "credentialprocess.py")
+        self.credential_process = "%s %s" % (sys.executable, credential_process)
 
     def mock_provider(self, provider_cls):
         mock_instance = mock.Mock(spec=provider_cls)
@@ -235,9 +226,7 @@ class TestAssumeRole(BaseAssumeRoleTest):
         # We have to set bogus credentials here or otherwise we'll trigger
         # an early credential chain resolution.
         sts = session.create_client(
-            'sts',
-            aws_access_key_id='spam',
-            aws_secret_access_key='eggs',
+            "sts", aws_access_key_id="spam", aws_secret_access_key="eggs",
         )
         self.mock_client_creator.return_value = sts
         assume_role_provider = AssumeRoleProvider(
@@ -245,26 +234,24 @@ class TestAssumeRole(BaseAssumeRoleTest):
             client_creator=self.mock_client_creator,
             cache={},
             profile_name=profile,
-            credential_sourcer=CanonicalNameCredentialSourcer([
-                self.env_provider, self.container_provider,
-                self.metadata_provider
-            ]),
+            credential_sourcer=CanonicalNameCredentialSourcer(
+                [self.env_provider, self.container_provider, self.metadata_provider]
+            ),
             profile_provider_builder=ProfileProviderBuilder(
-                session,
-                sso_token_cache=JSONFileCache(self.tempdir),
+                session, sso_token_cache=JSONFileCache(self.tempdir),
             ),
         )
-        stubber = session.stub('sts')
+        stubber = session.stub("sts")
         stubber.activate()
 
-        component_name = 'credential_provider'
+        component_name = "credential_provider"
         resolver = session.get_component(component_name)
         available_methods = [p.METHOD for p in resolver.providers]
         replacements = {
-            'env': self.env_provider,
-            'iam-role': self.metadata_provider,
-            'container-role': self.container_provider,
-            'assume-role': assume_role_provider
+            "env": self.env_provider,
+            "iam-role": self.metadata_provider,
+            "container-role": self.container_provider,
+            "assume-role": assume_role_provider,
         }
         for name, provider in replacements.items():
             try:
@@ -275,26 +262,24 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
             resolver.providers[index] = provider
 
-        session.register_component(
-            'credential_provider', resolver
-        )
+        session.register_component("credential_provider", resolver)
         return session, stubber
 
     def test_assume_role(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -302,9 +287,9 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_environment_credential_source(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'credential_source = Environment\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "credential_source = Environment\n"
         )
         self.write_config(config)
 
@@ -313,8 +298,8 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -324,9 +309,9 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_instance_metadata_credential_source(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'credential_source = Ec2InstanceMetadata\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "credential_source = Ec2InstanceMetadata\n"
         )
         self.write_config(config)
 
@@ -335,8 +320,8 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -346,9 +331,9 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_container_credential_source(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'credential_source = EcsContainer\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "credential_source = EcsContainer\n"
         )
         self.write_config(config)
 
@@ -357,8 +342,8 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -368,41 +353,41 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_invalid_credential_source(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'credential_source = CustomInvalidProvider\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "credential_source = CustomInvalidProvider\n"
         )
         self.write_config(config)
 
         with self.assertRaises(InvalidConfigError):
-            session, _ = self.create_session(profile='A')
+            session, _ = self.create_session(profile="A")
             session.get_credentials()
 
     def test_misconfigured_source_profile(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n'
-            '[profile B]\n'
-            'region = us-west-2\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n"
+            "[profile B]\n"
+            "region = us-west-2\n"
         )
         self.write_config(config)
 
         with self.assertRaises(InvalidConfigError):
-            session, _ = self.create_session(profile='A')
+            session, _ = self.create_session(profile="A")
             session.get_credentials().get_frozen_credentials()
 
     def test_recursive_assume_role(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleB\n'
-            'source_profile = C\n\n'
-            '[profile C]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleB\n"
+            "source_profile = C\n\n"
+            "[profile C]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
 
@@ -411,9 +396,9 @@ class TestAssumeRole(BaseAssumeRoleTest):
         profile_a_creds = self.create_random_credentials()
         profile_a_response = self.create_assume_role_response(profile_a_creds)
 
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', profile_b_response)
-        stubber.add_response('assume_role', profile_a_response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", profile_b_response)
+        stubber.add_response("assume_role", profile_a_response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, profile_a_creds)
@@ -421,24 +406,24 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_recursive_assume_role_stops_at_static_creds(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleB\n'
-            'source_profile = C\n\n'
-            '[profile C]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleB\n"
+            "source_profile = C\n\n"
+            "[profile C]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
 
         profile_a_creds = self.create_random_credentials()
         profile_a_response = self.create_assume_role_response(profile_a_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', profile_a_response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", profile_a_response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, profile_a_creds)
@@ -446,30 +431,30 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_infinitely_recursive_assume_role(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = A\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = A\n"
         )
         self.write_config(config)
 
         with self.assertRaises(InfiniteLoopConfigError):
-            session, _ = self.create_session(profile='A')
+            session, _ = self.create_session(profile="A")
             session.get_credentials()
 
     def test_process_source_profile(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n'
-            '[profile B]\n'
-            'credential_process = %s\n' % self.credential_process
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n"
+            "[profile B]\n"
+            "credential_process = %s\n" % self.credential_process
         )
         self.write_config(config)
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -479,38 +464,37 @@ class TestAssumeRole(BaseAssumeRoleTest):
         self.assertEqual(self.mock_client_creator.call_count, 1)
         _, kwargs = self.mock_client_creator.call_args_list[0]
         expected_kwargs = {
-            'aws_access_key_id': 'spam',
-            'aws_secret_access_key': 'eggs',
-            'aws_session_token': None,
+            "aws_access_key_id": "spam",
+            "aws_secret_access_key": "eggs",
+            "aws_session_token": None,
         }
         self.assertEqual(kwargs, expected_kwargs)
 
     def test_web_identity_source_profile(self):
-        token_path = os.path.join(self.tempdir, 'token')
-        with open(token_path, 'w') as token_file:
-            token_file.write('a.token')
+        token_path = os.path.join(self.tempdir, "token")
+        with open(token_path, "w") as token_file:
+            token_file.write("a.token")
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n'
-            '[profile B]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleB\n'
-            'web_identity_token_file = %s\n' % token_path
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n"
+            "[profile B]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleB\n"
+            "web_identity_token_file = %s\n" % token_path
         )
         self.write_config(config)
 
-        session, stubber = self.create_session(profile='A')
+        session, stubber = self.create_session(profile="A")
 
         identity_creds = self.create_random_credentials()
         identity_response = self.create_assume_role_response(identity_creds)
         stubber.add_response(
-            'assume_role_with_web_identity',
-            identity_response,
+            "assume_role_with_web_identity", identity_response,
         )
 
         expected_creds = self.create_random_credentials()
         assume_role_response = self.create_assume_role_response(expected_creds)
-        stubber.add_response('assume_role', assume_role_response)
+        stubber.add_response("assume_role", assume_role_response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -520,27 +504,27 @@ class TestAssumeRole(BaseAssumeRoleTest):
         self.assertEqual(self.mock_client_creator.call_count, 1)
         _, kwargs = self.mock_client_creator.call_args_list[0]
         expected_kwargs = {
-            'aws_access_key_id': identity_creds.access_key,
-            'aws_secret_access_key': identity_creds.secret_key,
-            'aws_session_token': identity_creds.token,
+            "aws_access_key_id": identity_creds.access_key,
+            "aws_secret_access_key": identity_creds.secret_key,
+            "aws_session_token": identity_creds.token,
         }
         self.assertEqual(kwargs, expected_kwargs)
 
     def test_web_identity_source_profile_ignores_env_vars(self):
-        token_path = os.path.join(self.tempdir, 'token')
-        with open(token_path, 'w') as token_file:
-            token_file.write('a.token')
-        self.environ['AWS_ROLE_ARN'] = 'arn:aws:iam::123456789:role/RoleB'
+        token_path = os.path.join(self.tempdir, "token")
+        with open(token_path, "w") as token_file:
+            token_file.write("a.token")
+        self.environ["AWS_ROLE_ARN"] = "arn:aws:iam::123456789:role/RoleB"
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n'
-            '[profile B]\n'
-            'web_identity_token_file = %s\n' % token_path
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n"
+            "[profile B]\n"
+            "web_identity_token_file = %s\n" % token_path
         )
         self.write_config(config)
 
-        session, _ = self.create_session(profile='A')
+        session, _ = self.create_session(profile="A")
         # The config is split between the profile and the env, we
         # should only be looking at the profile so this should raise
         # a configuration error.
@@ -548,49 +532,46 @@ class TestAssumeRole(BaseAssumeRoleTest):
             session.get_credentials()
 
     def test_sso_source_profile(self):
-        token_cache_key = 'f395038c92f1828cbb3991d2d6152d326b895606'
+        token_cache_key = "f395038c92f1828cbb3991d2d6152d326b895606"
         cached_token = {
-            'accessToken': 'a.token',
-            'expiresAt': self.some_future_time(),
+            "accessToken": "a.token",
+            "expiresAt": self.some_future_time(),
         }
         temp_cache = JSONFileCache(self.tempdir)
         temp_cache[token_cache_key] = cached_token
 
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n'
-            '[profile B]\n'
-            'sso_region = us-east-1\n'
-            'sso_start_url = https://test.url/start\n'
-            'sso_role_name = SSORole\n'
-            'sso_account_id = 1234567890\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n"
+            "[profile B]\n"
+            "sso_region = us-east-1\n"
+            "sso_start_url = https://test.url/start\n"
+            "sso_role_name = SSORole\n"
+            "sso_account_id = 1234567890\n"
         )
         self.write_config(config)
 
-        session, sts_stubber = self.create_session(profile='A')
-        client_config = Config(
-            region_name='us-east-1',
-            signature_version=UNSIGNED,
-        )
-        sso_stubber = session.stub('sso', config=client_config)
+        session, sts_stubber = self.create_session(profile="A")
+        client_config = Config(region_name="us-east-1", signature_version=UNSIGNED,)
+        sso_stubber = session.stub("sso", config=client_config)
         sso_stubber.activate()
         # The expiration needs to be in milliseconds
         expiration = datetime2timestamp(self.some_future_time()) * 1000
         sso_role_creds = self.create_random_credentials()
         sso_role_response = {
-            'roleCredentials': {
-                'accessKeyId': sso_role_creds.access_key,
-                'secretAccessKey': sso_role_creds.secret_key,
-                'sessionToken': sso_role_creds.token,
-                'expiration': int(expiration),
+            "roleCredentials": {
+                "accessKeyId": sso_role_creds.access_key,
+                "secretAccessKey": sso_role_creds.secret_key,
+                "sessionToken": sso_role_creds.token,
+                "expiration": int(expiration),
             }
         }
-        sso_stubber.add_response('get_role_credentials', sso_role_response)
+        sso_stubber.add_response("get_role_credentials", sso_role_response)
 
         expected_creds = self.create_random_credentials()
         assume_role_response = self.create_assume_role_response(expected_creds)
-        sts_stubber.add_response('assume_role', assume_role_response)
+        sts_stubber.add_response("assume_role", assume_role_response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -600,26 +581,26 @@ class TestAssumeRole(BaseAssumeRoleTest):
         self.assertEqual(self.mock_client_creator.call_count, 1)
         _, kwargs = self.mock_client_creator.call_args_list[0]
         expected_kwargs = {
-            'aws_access_key_id': sso_role_creds.access_key,
-            'aws_secret_access_key': sso_role_creds.secret_key,
-            'aws_session_token': sso_role_creds.token,
+            "aws_access_key_id": sso_role_creds.access_key,
+            "aws_secret_access_key": sso_role_creds.secret_key,
+            "aws_session_token": sso_role_creds.token,
         }
         self.assertEqual(kwargs, expected_kwargs)
 
     def test_web_identity_credential_source_ignores_env_vars(self):
-        token_path = os.path.join(self.tempdir, 'token')
-        with open(token_path, 'w') as token_file:
-            token_file.write('a.token')
-        self.environ['AWS_ROLE_ARN'] = 'arn:aws:iam::123456789:role/RoleB'
-        self.environ['AWS_WEB_IDENTITY_TOKEN_FILE'] = token_path
+        token_path = os.path.join(self.tempdir, "token")
+        with open(token_path, "w") as token_file:
+            token_file.write("a.token")
+        self.environ["AWS_ROLE_ARN"] = "arn:aws:iam::123456789:role/RoleB"
+        self.environ["AWS_WEB_IDENTITY_TOKEN_FILE"] = token_path
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'credential_source = Environment\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "credential_source = Environment\n"
         )
         self.write_config(config)
 
-        session, _ = self.create_session(profile='A')
+        session, _ = self.create_session(profile="A")
         # We should not get credentials from web-identity configured in the
         # environment when the Environment credential_source is set.
         # There are no Environment credentials, so this should raise a
@@ -629,18 +610,18 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_self_referential_profile(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = A\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = A\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
 
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
-        session, stubber = self.create_session(profile='A')
-        stubber.add_response('assume_role', response)
+        session, stubber = self.create_session(profile="A")
+        stubber.add_response("assume_role", response)
 
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -655,7 +636,7 @@ class TestAssumeRole(BaseAssumeRoleTest):
             stub = Stubber(client)
             response = self.create_assume_role_response(expected_creds)
             self.actual_client_region = client.meta.region_name
-            stub.add_response('assume_role', response)
+            stub.add_response("assume_role", response)
             stub.activate()
             return client
 
@@ -663,51 +644,47 @@ class TestAssumeRole(BaseAssumeRoleTest):
 
     def test_assume_role_uses_correct_region(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
-        session = Session(profile='A')
+        session = Session(profile="A")
         # Verify that when we configure the session with a specific region
         # that we use that region when creating the sts client.
-        session.set_config_variable('region', 'cn-north-1')
+        session.set_config_variable("region", "cn-north-1")
 
         create_client, expected_creds = self.create_stubbed_sts_client(session)
         session.create_client = create_client
 
         resolver = create_credential_resolver(session)
-        provider = resolver.get_provider('assume-role')
+        provider = resolver.get_provider("assume-role")
         creds = provider.load()
         self.assert_creds_equal(creds, expected_creds)
-        self.assertEqual(self.actual_client_region, 'cn-north-1')
+        self.assertEqual(self.actual_client_region, "cn-north-1")
 
 
 class TestAssumeRoleWithWebIdentity(BaseAssumeRoleTest):
     def setUp(self):
         super(TestAssumeRoleWithWebIdentity, self).setUp()
-        self.token_file = os.path.join(self.tempdir, 'token.jwt')
-        self.write_token('totally.a.token')
+        self.token_file = os.path.join(self.tempdir, "token.jwt")
+        self.write_token("totally.a.token")
 
     def write_token(self, token, path=None):
         if path is None:
             path = self.token_file
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             f.write(token)
 
     def assert_session_credentials(self, expected_params, **kwargs):
         expected_creds = self.create_random_credentials()
         response = self.create_assume_role_response(expected_creds)
         session = StubbedSession(**kwargs)
-        stubber = session.stub('sts')
-        stubber.add_response(
-            'assume_role_with_web_identity',
-            response,
-            expected_params
-        )
+        stubber = session.stub("sts")
+        stubber.add_response("assume_role_with_web_identity", response, expected_params)
         stubber.activate()
         actual_creds = session.get_credentials()
         self.assert_creds_equal(actual_creds, expected_creds)
@@ -715,102 +692,89 @@ class TestAssumeRoleWithWebIdentity(BaseAssumeRoleTest):
 
     def test_assume_role(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'role_session_name = sname\n'
-            'web_identity_token_file = %s\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "role_session_name = sname\n"
+            "web_identity_token_file = %s\n"
         ) % self.token_file
         self.write_config(config)
         expected_params = {
-            'RoleArn': 'arn:aws:iam::123456789:role/RoleA',
-            'RoleSessionName': 'sname',
-            'WebIdentityToken': 'totally.a.token',
+            "RoleArn": "arn:aws:iam::123456789:role/RoleA",
+            "RoleSessionName": "sname",
+            "WebIdentityToken": "totally.a.token",
         }
-        self.assert_session_credentials(expected_params, profile='A')
+        self.assert_session_credentials(expected_params, profile="A")
 
     def test_assume_role_env_vars(self):
-        config = (
-            '[profile B]\n'
-            'region = us-west-2\n'
-        )
+        config = "[profile B]\n" "region = us-west-2\n"
         self.write_config(config)
-        self.environ['AWS_ROLE_ARN'] = 'arn:aws:iam::123456789:role/RoleB'
-        self.environ['AWS_WEB_IDENTITY_TOKEN_FILE'] = self.token_file
-        self.environ['AWS_ROLE_SESSION_NAME'] = 'bname'
+        self.environ["AWS_ROLE_ARN"] = "arn:aws:iam::123456789:role/RoleB"
+        self.environ["AWS_WEB_IDENTITY_TOKEN_FILE"] = self.token_file
+        self.environ["AWS_ROLE_SESSION_NAME"] = "bname"
 
         expected_params = {
-            'RoleArn': 'arn:aws:iam::123456789:role/RoleB',
-            'RoleSessionName': 'bname',
-            'WebIdentityToken': 'totally.a.token',
+            "RoleArn": "arn:aws:iam::123456789:role/RoleB",
+            "RoleSessionName": "bname",
+            "WebIdentityToken": "totally.a.token",
         }
         self.assert_session_credentials(expected_params)
 
     def test_assume_role_env_vars_do_not_take_precedence(self):
         config = (
-            '[profile A]\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'role_session_name = aname\n'
-            'web_identity_token_file = %s\n'
+            "[profile A]\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "role_session_name = aname\n"
+            "web_identity_token_file = %s\n"
         ) % self.token_file
         self.write_config(config)
 
         different_token = os.path.join(self.tempdir, str(uuid.uuid4()))
-        self.write_token('totally.different.token', path=different_token)
-        self.environ['AWS_ROLE_ARN'] = 'arn:aws:iam::123456789:role/RoleC'
-        self.environ['AWS_WEB_IDENTITY_TOKEN_FILE'] = different_token
-        self.environ['AWS_ROLE_SESSION_NAME'] = 'cname'
+        self.write_token("totally.different.token", path=different_token)
+        self.environ["AWS_ROLE_ARN"] = "arn:aws:iam::123456789:role/RoleC"
+        self.environ["AWS_WEB_IDENTITY_TOKEN_FILE"] = different_token
+        self.environ["AWS_ROLE_SESSION_NAME"] = "cname"
 
         expected_params = {
-            'RoleArn': 'arn:aws:iam::123456789:role/RoleA',
-            'RoleSessionName': 'aname',
-            'WebIdentityToken': 'totally.a.token',
+            "RoleArn": "arn:aws:iam::123456789:role/RoleA",
+            "RoleSessionName": "aname",
+            "WebIdentityToken": "totally.a.token",
         }
-        self.assert_session_credentials(expected_params, profile='A')
+        self.assert_session_credentials(expected_params, profile="A")
 
 
 class TestProcessProvider(unittest.TestCase):
     def setUp(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        credential_process = os.path.join(
-            current_dir, 'utils', 'credentialprocess.py'
-        )
-        self.credential_process = '%s %s' % (
-            sys.executable, credential_process
-        )
+        credential_process = os.path.join(current_dir, "utils", "credentialprocess.py")
+        self.credential_process = "%s %s" % (sys.executable, credential_process)
         self.environ = os.environ.copy()
-        self.environ_patch = mock.patch('os.environ', self.environ)
+        self.environ_patch = mock.patch("os.environ", self.environ)
         self.environ_patch.start()
 
     def tearDown(self):
         self.environ_patch.stop()
 
     def test_credential_process(self):
-        config = (
-            '[profile processcreds]\n'
-            'credential_process = %s\n'
-        )
+        config = "[profile processcreds]\n" "credential_process = %s\n"
         config = config % self.credential_process
-        with temporary_file('w') as f:
+        with temporary_file("w") as f:
             f.write(config)
             f.flush()
-            self.environ['AWS_CONFIG_FILE'] = f.name
+            self.environ["AWS_CONFIG_FILE"] = f.name
 
-            credentials = Session(profile='processcreds').get_credentials()
-            self.assertEqual(credentials.access_key, 'spam')
-            self.assertEqual(credentials.secret_key, 'eggs')
+            credentials = Session(profile="processcreds").get_credentials()
+            self.assertEqual(credentials.access_key, "spam")
+            self.assertEqual(credentials.secret_key, "eggs")
 
     def test_credential_process_returns_error(self):
-        config = (
-            '[profile processcreds]\n'
-            'credential_process = %s --raise-error\n'
-        )
+        config = "[profile processcreds]\n" "credential_process = %s --raise-error\n"
         config = config % self.credential_process
-        with temporary_file('w') as f:
+        with temporary_file("w") as f:
             f.write(config)
             f.flush()
-            self.environ['AWS_CONFIG_FILE'] = f.name
+            self.environ["AWS_CONFIG_FILE"] = f.name
 
-            session = Session(profile='processcreds')
+            session = Session(profile="processcreds")
 
             # This regex validates that there is no substring: b'
             # The reason why we want to validate that is that we want to
@@ -832,90 +796,86 @@ class TestProcessProvider(unittest.TestCase):
 
 class TestSTSRegional(BaseAssumeRoleTest):
     def add_assume_role_http_response(self, stubber):
-        stubber.add_response(
-            body=self._get_assume_role_body('AssumeRole'))
+        stubber.add_response(body=self._get_assume_role_body("AssumeRole"))
 
     def add_assume_role_with_web_identity_http_response(self, stubber):
         stubber.add_response(
-            body=self._get_assume_role_body('AssumeRoleWithWebIdentity'))
+            body=self._get_assume_role_body("AssumeRoleWithWebIdentity")
+        )
 
     def _get_assume_role_body(self, method_name):
         expiration = self.some_future_time()
         body = (
-            '<{method_name}Response>'
-            '  <{method_name}Result>'
-            '    <AssumedRoleUser>'
-            '      <Arn>arn:aws:sts::0123456:user</Arn>'
-            '      <AssumedRoleId>AKID:mysession-1567020004</AssumedRoleId>'
-            '    </AssumedRoleUser>'
-            '    <Credentials>'
-            '      <AccessKeyId>AccessKey</AccessKeyId>'
-            '      <SecretAccessKey>SecretKey</SecretAccessKey>'
-            '      <SessionToken>SessionToken</SessionToken>'
-            '      <Expiration>{expiration}</Expiration>'
-            '    </Credentials>'
-            '  </{method_name}Result>'
-            '</{method_name}Response>'
+            "<{method_name}Response>"
+            "  <{method_name}Result>"
+            "    <AssumedRoleUser>"
+            "      <Arn>arn:aws:sts::0123456:user</Arn>"
+            "      <AssumedRoleId>AKID:mysession-1567020004</AssumedRoleId>"
+            "    </AssumedRoleUser>"
+            "    <Credentials>"
+            "      <AccessKeyId>AccessKey</AccessKeyId>"
+            "      <SecretAccessKey>SecretKey</SecretAccessKey>"
+            "      <SessionToken>SessionToken</SessionToken>"
+            "      <Expiration>{expiration}</Expiration>"
+            "    </Credentials>"
+            "  </{method_name}Result>"
+            "</{method_name}Response>"
         ).format(method_name=method_name, expiration=expiration)
-        return body.encode('utf-8')
+        return body.encode("utf-8")
 
     def make_stubbed_client_call_to_region(self, session, stubber, region):
-        ec2 = session.create_client('ec2', region_name=region)
-        stubber.add_response(body=b'<DescribeRegionsResponse/>')
+        ec2 = session.create_client("ec2", region_name=region)
+        stubber.add_response(body=b"<DescribeRegionsResponse/>")
         ec2.describe_regions()
 
     def test_assume_role_uses_same_region_as_client(self):
         config = (
-            '[profile A]\n'
-            'sts_regional_endpoints = regional\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n'
+            "[profile A]\n"
+            "sts_regional_endpoints = regional\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n"
         )
         self.write_config(config)
 
-        session = Session(profile='A')
+        session = Session(profile="A")
         with SessionHTTPStubber(session) as stubber:
             self.add_assume_role_http_response(stubber)
             # Make an arbitrary client and API call as we are really only
             # looking to make sure the STS assume role call uses the correct
             # endpoint.
-            self.make_stubbed_client_call_to_region(
-                session, stubber, 'us-west-2')
+            self.make_stubbed_client_call_to_region(session, stubber, "us-west-2")
             self.assertEqual(
-                stubber.requests[0].url,
-                'https://sts.us-west-2.amazonaws.com/'
+                stubber.requests[0].url, "https://sts.us-west-2.amazonaws.com/"
             )
 
     def test_assume_role_web_identity_uses_same_region_as_client(self):
-        token_file = os.path.join(self.tempdir, 'token.jwt')
-        with open(token_file, 'w') as f:
-            f.write('some-token')
+        token_file = os.path.join(self.tempdir, "token.jwt")
+        with open(token_file, "w") as f:
+            f.write("some-token")
         config = (
-            '[profile A]\n'
-            'sts_regional_endpoints = regional\n'
-            'role_arn = arn:aws:iam::123456789:role/RoleA\n'
-            'web_identity_token_file = %s\n'
-            'source_profile = B\n\n'
-            '[profile B]\n'
-            'aws_access_key_id = abc123\n'
-            'aws_secret_access_key = def456\n' % token_file
+            "[profile A]\n"
+            "sts_regional_endpoints = regional\n"
+            "role_arn = arn:aws:iam::123456789:role/RoleA\n"
+            "web_identity_token_file = %s\n"
+            "source_profile = B\n\n"
+            "[profile B]\n"
+            "aws_access_key_id = abc123\n"
+            "aws_secret_access_key = def456\n" % token_file
         )
         self.write_config(config)
         # Make an arbitrary client and API call as we are really only
         # looking to make sure the STS assume role call uses the correct
         # endpoint.
-        session = Session(profile='A')
+        session = Session(profile="A")
         with SessionHTTPStubber(session) as stubber:
             self.add_assume_role_with_web_identity_http_response(stubber)
             # Make an arbitrary client and API call as we are really only
             # looking to make sure the STS assume role call uses the correct
             # endpoint.
-            self.make_stubbed_client_call_to_region(
-                session, stubber, 'us-west-2')
+            self.make_stubbed_client_call_to_region(session, stubber, "us-west-2")
             self.assertEqual(
-                stubber.requests[0].url,
-                'https://sts.us-west-2.amazonaws.com/'
+                stubber.requests[0].url, "https://sts.us-west-2.amazonaws.com/"
             )

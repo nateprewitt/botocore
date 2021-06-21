@@ -27,6 +27,7 @@ def _reload_six():
         reload(six)
     else:
         import importlib
+
         importlib.reload(six)
 
 
@@ -48,8 +49,9 @@ class _ExampleThread(threading.Thread):
 
 def test_six_thread_safety():
     _reload_six()
-    with patch('botocore.vendored.six.moves.__class__.__setattr__',
-               wraps=_wrapped_setattr):
+    with patch(
+        "botocore.vendored.six.moves.__class__.__setattr__", wraps=_wrapped_setattr
+    ):
         threads = []
         for i in range(2):
             t = _ExampleThread()

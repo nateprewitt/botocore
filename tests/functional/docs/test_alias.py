@@ -18,12 +18,13 @@ class TestAliasesDocumented(BaseDocsFunctionalTest):
     def test_all_aliases_are_documented_correctly(self):
         for case in ALIAS_CASES:
             content = self.get_docstring_for_method(
-                case['service'], case['operation']).decode('utf-8')
-            new_name = case['new_name']
-            original_name = case['original_name']
-            param_name_template = ':param %s:'
-            param_type_template = ':type %s:'
-            param_example_template = '%s='
+                case["service"], case["operation"]
+            ).decode("utf-8")
+            new_name = case["new_name"]
+            original_name = case["original_name"]
+            param_name_template = ":param %s:"
+            param_type_template = ":type %s:"
+            param_example_template = "%s="
 
             # Make sure the new parameters are in the documentation
             # but the old names are not.

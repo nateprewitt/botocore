@@ -19,80 +19,66 @@ from tests import create_session, ClientHTTPStubber
 
 def test_unsigned_operations():
     operation_params = {
-        'change_password': {
-            'PreviousPassword': 'myoldbadpassword',
-            'ProposedPassword': 'mynewgoodpassword',
-            'AccessToken': 'foobar'
+        "change_password": {
+            "PreviousPassword": "myoldbadpassword",
+            "ProposedPassword": "mynewgoodpassword",
+            "AccessToken": "foobar",
         },
-        'confirm_forgot_password': {
-            'ClientId': 'foo',
-            'Username': 'myusername',
-            'ConfirmationCode': 'thisismeforreal',
-            'Password': 'whydowesendpasswordsviaemail'
+        "confirm_forgot_password": {
+            "ClientId": "foo",
+            "Username": "myusername",
+            "ConfirmationCode": "thisismeforreal",
+            "Password": "whydowesendpasswordsviaemail",
         },
-        'confirm_sign_up': {
-            'ClientId': 'foo',
-            'Username': 'myusername',
-            'ConfirmationCode': 'ireallydowanttosignup'
+        "confirm_sign_up": {
+            "ClientId": "foo",
+            "Username": "myusername",
+            "ConfirmationCode": "ireallydowanttosignup",
         },
-        'delete_user': {
-            'AccessToken': 'foobar'
+        "delete_user": {"AccessToken": "foobar"},
+        "delete_user_attributes": {
+            "UserAttributeNames": ["myattribute"],
+            "AccessToken": "foobar",
         },
-        'delete_user_attributes': {
-            'UserAttributeNames': ['myattribute'],
-            'AccessToken': 'foobar'
+        "forgot_password": {"ClientId": "foo", "Username": "myusername"},
+        "get_user": {"AccessToken": "foobar"},
+        "get_user_attribute_verification_code": {
+            "AttributeName": "myattribute",
+            "AccessToken": "foobar",
         },
-        'forgot_password': {
-            'ClientId': 'foo',
-            'Username': 'myusername'
+        "resend_confirmation_code": {"ClientId": "foo", "Username": "myusername"},
+        "set_user_settings": {
+            "AccessToken": "randomtoken",
+            "MFAOptions": [
+                {"DeliveryMedium": "SMS", "AttributeName": "someattributename"}
+            ],
         },
-        'get_user': {
-            'AccessToken': 'foobar'
+        "sign_up": {
+            "ClientId": "foo",
+            "Username": "bar",
+            "Password": "mysupersecurepassword",
         },
-        'get_user_attribute_verification_code': {
-            'AttributeName': 'myattribute',
-            'AccessToken': 'foobar'
+        "update_user_attributes": {
+            "UserAttributes": [{"Name": "someattributename", "Value": "newvalue"}],
+            "AccessToken": "foobar",
         },
-        'resend_confirmation_code': {
-            'ClientId': 'foo',
-            'Username': 'myusername'
-        },
-        'set_user_settings': {
-            'AccessToken': 'randomtoken',
-            'MFAOptions': [{
-                'DeliveryMedium': 'SMS',
-                'AttributeName': 'someattributename'
-            }]
-        },
-        'sign_up': {
-            'ClientId': 'foo',
-            'Username': 'bar',
-            'Password': 'mysupersecurepassword',
-        },
-        'update_user_attributes': {
-            'UserAttributes': [{
-                'Name': 'someattributename',
-                'Value': 'newvalue'
-            }],
-            'AccessToken': 'foobar'
-        },
-        'verify_user_attribute': {
-            'AttributeName': 'someattributename',
-            'Code': 'someverificationcode',
-            'AccessToken': 'foobar'
+        "verify_user_attribute": {
+            "AttributeName": "someattributename",
+            "Code": "someverificationcode",
+            "AccessToken": "foobar",
         },
     }
 
     environ = {
-        'AWS_ACCESS_KEY_ID': 'access_key',
-        'AWS_SECRET_ACCESS_KEY': 'secret_key',
-        'AWS_CONFIG_FILE': 'no-exist-foo',
+        "AWS_ACCESS_KEY_ID": "access_key",
+        "AWS_SECRET_ACCESS_KEY": "secret_key",
+        "AWS_CONFIG_FILE": "no-exist-foo",
     }
 
-    with mock.patch('os.environ', environ):
+    with mock.patch("os.environ", environ):
         session = create_session()
-        session.config_filename = 'no-exist-foo'
-        client = session.create_client('cognito-idp', 'us-west-2')
+        session.config_filename = "no-exist-foo"
+        client = session.create_client("cognito-idp", "us-west-2")
 
         for operation, params in operation_params.items():
             test_case = UnsignedOperationTestCase(client, operation, params)
@@ -109,12 +95,12 @@ class UnsignedOperationTestCase(object):
     def run(self):
         operation = getattr(self._client, self._operation_name)
 
-        self._http_stubber.add_response(body=b'{}')
+        self._http_stubber.add_response(body=b"{}")
         with self._http_stubber:
             operation(**self._parameters)
             request = self._http_stubber.requests[0]
 
         assert_false(
-            'authorization' in request.headers,
-            'authorization header found in unsigned operation'
+            "authorization" in request.headers,
+            "authorization header found in unsigned operation",
         )

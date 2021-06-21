@@ -9,7 +9,9 @@ import botocore.session
 from botocore.config import Config
 from botocore.vendored.six.moves import BaseHTTPServer, socketserver
 from botocore.exceptions import (
-    ConnectTimeoutError, ReadTimeoutError, EndpointConnectionError,
+    ConnectTimeoutError,
+    ReadTimeoutError,
+    EndpointConnectionError,
     ConnectionClosedError,
 )
 from botocore.vendored.requests import exceptions as requests_exceptions
@@ -18,45 +20,44 @@ from botocore.vendored.requests import exceptions as requests_exceptions
 class TestClientHTTPBehavior(unittest.TestCase):
     def setUp(self):
         self.port = unused_port()
-        self.localhost = 'http://localhost:%s/' % self.port
+        self.localhost = "http://localhost:%s/" % self.port
         self.session = botocore.session.get_session()
         # We need to set fake credentials to ensure credentials aren't searched
         # for which might make additional API calls (assume role, etc).
-        self.session.set_credentials('fakeakid', 'fakesecret')
+        self.session.set_credentials("fakeakid", "fakesecret")
 
-    @unittest.skip('Test has suddenly become extremely flakey.')
+    @unittest.skip("Test has suddenly become extremely flakey.")
     def test_can_proxy_https_request_with_auth(self):
-        proxy_url = 'http://user:pass@localhost:%s/' % self.port
-        config = Config(proxies={'https': proxy_url}, region_name='us-west-1')
-        client = self.session.create_client('ec2', config=config)
+        proxy_url = "http://user:pass@localhost:%s/" % self.port
+        config = Config(proxies={"https": proxy_url}, region_name="us-west-1")
+        client = self.session.create_client("ec2", config=config)
 
         class AuthProxyHandler(ProxyHandler):
             event = threading.Event()
 
             def validate_auth(self):
-                proxy_auth = self.headers.get('Proxy-Authorization')
-                return proxy_auth == 'Basic dXNlcjpwYXNz'
+                proxy_auth = self.headers.get("Proxy-Authorization")
+                return proxy_auth == "Basic dXNlcjpwYXNz"
 
         try:
             with background(run_server, args=(AuthProxyHandler, self.port)):
                 AuthProxyHandler.event.wait(timeout=60)
                 client.describe_regions()
         except BackgroundTaskFailed:
-            self.fail('Background task did not exit, proxy was not used.')
+            self.fail("Background task did not exit, proxy was not used.")
 
     def _read_timeout_server(self):
         config = Config(
-            read_timeout=0.1,
-            retries={'max_attempts': 0},
-            region_name='us-weast-2',
+            read_timeout=0.1, retries={"max_attempts": 0}, region_name="us-weast-2",
         )
-        client = self.session.create_client('ec2', endpoint_url=self.localhost,
-                                            config=config)
+        client = self.session.create_client(
+            "ec2", endpoint_url=self.localhost, config=config
+        )
         client_call_ended_event = threading.Event()
 
         class FakeEC2(SimpleHandler):
             event = threading.Event()
-            msg = b'<response/>'
+            msg = b"<response/>"
 
             def get_length(self):
                 return len(self.msg)
@@ -73,7 +74,7 @@ class TestClientHTTPBehavior(unittest.TestCase):
                 finally:
                     client_call_ended_event.set()
         except BackgroundTaskFailed:
-            self.fail('Fake EC2 service was not called.')
+            self.fail("Fake EC2 service was not called.")
 
     def test_read_timeout_exception(self):
         with self.assertRaises(ReadTimeoutError):
@@ -83,22 +84,21 @@ class TestClientHTTPBehavior(unittest.TestCase):
         with self.assertRaises(requests_exceptions.ReadTimeout):
             self._read_timeout_server()
 
-    @unittest.skip('The current implementation will fail to timeout on linux')
+    @unittest.skip("The current implementation will fail to timeout on linux")
     def test_connect_timeout_exception(self):
         config = Config(
-            connect_timeout=0.2,
-            retries={'max_attempts': 0},
-            region_name='us-weast-2',
+            connect_timeout=0.2, retries={"max_attempts": 0}, region_name="us-weast-2",
         )
-        client = self.session.create_client('ec2', endpoint_url=self.localhost,
-                                            config=config)
+        client = self.session.create_client(
+            "ec2", endpoint_url=self.localhost, config=config
+        )
         server_bound_event = threading.Event()
         client_call_ended_event = threading.Event()
 
         def no_accept_server():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind(('', self.port))
+            sock.bind(("", self.port))
             server_bound_event.set()
             client_call_ended_event.wait(timeout=60)
             sock.close()
@@ -110,23 +110,23 @@ class TestClientHTTPBehavior(unittest.TestCase):
             client_call_ended_event.set()
 
     def test_invalid_host_gaierror(self):
-        config = Config(retries={'max_attempts': 0}, region_name='us-weast-1')
-        endpoint = 'https://ec2.us-weast-1.amazonaws.com/'
-        client = self.session.create_client('ec2', endpoint_url=endpoint,
-                                            config=config)
+        config = Config(retries={"max_attempts": 0}, region_name="us-weast-1")
+        endpoint = "https://ec2.us-weast-1.amazonaws.com/"
+        client = self.session.create_client("ec2", endpoint_url=endpoint, config=config)
         with self.assertRaises(EndpointConnectionError):
             client.describe_regions()
 
     def test_bad_status_line(self):
-        config = Config(retries={'max_attempts': 0}, region_name='us-weast-2')
-        client = self.session.create_client('ec2', endpoint_url=self.localhost,
-                                            config=config)
+        config = Config(retries={"max_attempts": 0}, region_name="us-weast-2")
+        client = self.session.create_client(
+            "ec2", endpoint_url=self.localhost, config=config
+        )
 
         class BadStatusHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             event = threading.Event()
 
             def do_POST(self):
-                self.wfile.write(b'garbage')
+                self.wfile.write(b"garbage")
 
         with background(run_server, args=(BadStatusHandler, self.port)):
             with self.assertRaises(ConnectionClosedError):
@@ -136,7 +136,7 @@ class TestClientHTTPBehavior(unittest.TestCase):
 
 def unused_port():
     with contextlib.closing(socket.socket()) as sock:
-        sock.bind(('127.0.0.1', 0))
+        sock.bind(("127.0.0.1", 0))
         return sock.getsockname()[1]
 
 
@@ -147,12 +147,12 @@ class SimpleHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return 0
 
     def get_body(self):
-        return b''
+        return b""
 
     def do_GET(self):
         length = str(self.get_length())
         self.send_response(self.status)
-        self.send_header('Content-Length', length)
+        self.send_header("Content-Length", length)
         self.end_headers()
         self.wfile.write(self.get_body())
 
@@ -188,7 +188,7 @@ class ProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
-        remote_host, remote_port = self.path.split(':')
+        remote_host, remote_port = self.path.split(":")
         remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         remote_socket.connect((remote_host, int(remote_port)))
 
@@ -213,12 +213,12 @@ def background(target, args=(), timeout=60):
     finally:
         thread.join(timeout=timeout)
         if thread.is_alive():
-            msg = 'Background task did not exit in a timely manner.'
+            msg = "Background task did not exit in a timely manner."
             raise BackgroundTaskFailed(msg)
 
 
 def run_server(handler, port):
-    address = ('', port)
+    address = ("", port)
     httpd = socketserver.TCPServer(address, handler, bind_and_activate=False)
     httpd.allow_reuse_address = True
     httpd.server_bind()

@@ -25,16 +25,24 @@ def test_emr_endpoints_work_with_py26():
     # certain SSL certs.  We therefore need to always use the CN
     # as the hostname.
     session = botocore.session.get_session()
-    for region in ['us-east-1', 'us-west-2', 'us-west-2', 'ap-northeast-1',
-                   'ap-southeast-1', 'ap-southeast-2', 'sa-east-1', 'eu-west-1',
-                   'eu-central-1']:
+    for region in [
+        "us-east-1",
+        "us-west-2",
+        "us-west-2",
+        "ap-northeast-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "sa-east-1",
+        "eu-west-1",
+        "eu-central-1",
+    ]:
         yield _test_can_list_clusters_in_region, session, region
 
 
 def _test_can_list_clusters_in_region(session, region):
-    client = session.create_client('emr', region_name=region)
+    client = session.create_client("emr", region_name=region)
     response = client.list_clusters()
-    assert_true('Clusters' in response)
+    assert_true("Clusters" in response)
 
 
 # I consider these integration tests because they're
@@ -43,26 +51,26 @@ def _test_can_list_clusters_in_region(session, region):
 class TestEMRGetExtraResources(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client('emr', 'us-west-2')
+        self.client = self.session.create_client("emr", "us-west-2")
 
     def test_can_access_pagination_configs(self):
         # Using an operation that we know will paginate.
-        paginator = self.client.get_paginator('list_clusters')
+        paginator = self.client.get_paginator("list_clusters")
         page_iterator = paginator.paginate()
         self.assertIsInstance(page_iterator, PageIterator)
 
     def test_operation_cant_be_paginated(self):
         with self.assertRaises(OperationNotPageableError):
-            self.client.get_paginator('add_instance_groups')
+            self.client.get_paginator("add_instance_groups")
 
     def test_can_get_waiters(self):
-        waiter = self.client.get_waiter('cluster_running')
-        self.assertTrue(hasattr(waiter, 'wait'))
+        waiter = self.client.get_waiter("cluster_running")
+        self.assertTrue(hasattr(waiter, "wait"))
 
     def test_waiter_does_not_exist(self):
         with self.assertRaises(ValueError):
-            self.client.get_waiter('does_not_exist')
+            self.client.get_waiter("does_not_exist")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

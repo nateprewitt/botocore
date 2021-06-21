@@ -20,20 +20,20 @@ from botocore.handlers import generate_idempotent_uuid
 class TestIdempotencyInjection(unittest.TestCase):
     def setUp(self):
         self.mock_model = mock.MagicMock()
-        self.mock_model.idempotent_members = ['RequiredKey']
+        self.mock_model.idempotent_members = ["RequiredKey"]
         self.uuid_pattern = re.compile(
-            '^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$',
-            re.I)
+            "^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", re.I
+        )
 
     def test_injection(self):
         # No parameters are provided, RequiredKey should be autofilled
         params = {}
         generate_idempotent_uuid(params, self.mock_model)
-        self.assertIn('RequiredKey', params)
-        self.assertIsNotNone(self.uuid_pattern.match(params['RequiredKey']))
+        self.assertIn("RequiredKey", params)
+        self.assertIsNotNone(self.uuid_pattern.match(params["RequiredKey"]))
 
     def test_provided(self):
         # RequiredKey is provided, should not be replaced
-        params = {'RequiredKey': 'already populated'}
+        params = {"RequiredKey": "already populated"}
         generate_idempotent_uuid(params, self.mock_model)
-        self.assertEqual(params['RequiredKey'], 'already populated')
+        self.assertEqual(params["RequiredKey"], "already populated")

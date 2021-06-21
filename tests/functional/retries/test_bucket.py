@@ -36,8 +36,7 @@ class TestTokenBucketThreading(unittest.TestCase):
         min_rate = 0.1
         max_rate = 1
         token_bucket = bucket.TokenBucket(
-            min_rate=min_rate, max_rate=max_rate,
-            clock=self.create_clock(),
+            min_rate=min_rate, max_rate=max_rate, clock=self.create_clock(),
         )
         # First we'll set the max_rate to 0.1 (min_rate).  This means that
         # it will take 10 seconds to accumulate a single token.  We'll start
@@ -73,19 +72,16 @@ class TestTokenBucketThreading(unittest.TestCase):
             time.sleep(0.01)
 
     def test_stress_test_token_bucket(self):
-        token_bucket = InstrumentedTokenBucket(
-            max_rate=10,
-            clock=self.create_clock(),
-        )
+        token_bucket = InstrumentedTokenBucket(max_rate=10, clock=self.create_clock(),)
         all_threads = []
         for _ in range(2):
             all_threads.append(
-                threading.Thread(target=self.randomly_set_max_rate,
-                                 args=(token_bucket, 30, 200))
+                threading.Thread(
+                    target=self.randomly_set_max_rate, args=(token_bucket, 30, 200)
+                )
             )
         for _ in range(10):
-            t = threading.Thread(target=self.acquire_in_loop,
-                                 args=(token_bucket,))
+            t = threading.Thread(target=self.acquire_in_loop, args=(token_bucket,))
             self.acquisitions_by_thread[t.name] = 0
             all_threads.append(t)
         for thread in all_threads:

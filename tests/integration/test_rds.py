@@ -19,25 +19,25 @@ import botocore.session
 class TestRDSPagination(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client('rds', 'us-west-2')
+        self.client = self.session.create_client("rds", "us-west-2")
 
     def test_can_paginate_reserved_instances(self):
         # Using an operation that we know will paginate.
         paginator = self.client.get_paginator(
-            'describe_reserved_db_instances_offerings')
+            "describe_reserved_db_instances_offerings"
+        )
         generator = paginator.paginate()
         results = list(itertools.islice(generator, 0, 3))
         self.assertEqual(len(results), 3)
-        self.assertTrue(results[0]['Marker'] != results[1]['Marker'])
+        self.assertTrue(results[0]["Marker"] != results[1]["Marker"])
 
     def test_can_paginate_orderable_db(self):
-        paginator = self.client.get_paginator(
-            'describe_orderable_db_instance_options')
-        generator = paginator.paginate(Engine='mysql')
+        paginator = self.client.get_paginator("describe_orderable_db_instance_options")
+        generator = paginator.paginate(Engine="mysql")
         results = list(itertools.islice(generator, 0, 2))
         self.assertEqual(len(results), 2)
-        self.assertTrue(results[0].get('Marker') != results[1].get('Marker'))
+        self.assertTrue(results[0].get("Marker") != results[1].get("Marker"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

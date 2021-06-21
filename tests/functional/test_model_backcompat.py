@@ -28,7 +28,7 @@ def test_old_model_continues_to_work():
     # of potential changes to the ClientHTTPStubber), and the files in
     # tests/functional/models should not change!
     session = Session()
-    loader = session.get_component('data_loader')
+    loader = session.get_component("data_loader")
     # We're adding our path to the existing search paths so we don't have to
     # copy additional data files such as _retry.json to our TEST_MODELS_DIR.
     # We only care about the service model and endpoints file not changing.
@@ -44,33 +44,41 @@ def test_old_model_continues_to_work():
     # to ensure we're loading our version of the model and not
     # the built in one.
     client = session.create_client(
-        'custom-acm', region_name='us-west-2',
-        aws_access_key_id='foo', aws_secret_access_key='bar',
+        "custom-acm",
+        region_name="us-west-2",
+        aws_access_key_id="foo",
+        aws_secret_access_key="bar",
     )
     with ClientHTTPStubber(client) as stubber:
         stubber.add_response(
-            url='https://acm.us-west-2.amazonaws.com/',
-            headers={'x-amzn-RequestId': 'abcd',
-                     'Date': 'Fri, 26 Oct 2018 01:46:30 GMT',
-                     'Content-Length': '29',
-                     'Content-Type': 'application/x-amz-json-1.1'},
-            body=b'{"CertificateSummaryList":[]}')
+            url="https://acm.us-west-2.amazonaws.com/",
+            headers={
+                "x-amzn-RequestId": "abcd",
+                "Date": "Fri, 26 Oct 2018 01:46:30 GMT",
+                "Content-Length": "29",
+                "Content-Type": "application/x-amz-json-1.1",
+            },
+            body=b'{"CertificateSummaryList":[]}',
+        )
         response = client.list_certificates()
         assert_equal(
             response,
-            {'CertificateSummaryList': [],
-             'ResponseMetadata': {
-                 'HTTPHeaders': {
-                     'content-length': '29',
-                     'content-type': 'application/x-amz-json-1.1',
-                     'date': 'Fri, 26 Oct 2018 01:46:30 GMT',
-                     'x-amzn-requestid': 'abcd'},
-                 'HTTPStatusCode': 200,
-                 'RequestId': 'abcd',
-                 'RetryAttempts': 0}
-             }
+            {
+                "CertificateSummaryList": [],
+                "ResponseMetadata": {
+                    "HTTPHeaders": {
+                        "content-length": "29",
+                        "content-type": "application/x-amz-json-1.1",
+                        "date": "Fri, 26 Oct 2018 01:46:30 GMT",
+                        "x-amzn-requestid": "abcd",
+                    },
+                    "HTTPStatusCode": 200,
+                    "RequestId": "abcd",
+                    "RetryAttempts": 0,
+                },
+            },
         )
 
     # Also verify we can use the paginators as well.
-    assert_equal(client.can_paginate('list_certificates'), True)
-    assert_equal(client.waiter_names, ['certificate_validated'])
+    assert_equal(client.can_paginate("list_certificates"), True)
+    assert_equal(client.waiter_names, ["certificate_validated"])

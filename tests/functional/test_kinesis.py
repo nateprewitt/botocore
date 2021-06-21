@@ -44,9 +44,7 @@ class TestKinesisListStreams(BaseSessionTest):
             request = json.loads(stub.requests[0].body.decode("utf-8"))
             self.assertEqual(request["StreamName"], self.stream_name)
             self.assertEqual(request["PartitionKey"], "foo")
-            self.assert_base64encoded_str_equals(
-                request["Data"], unique_data
-            )
+            self.assert_base64encoded_str_equals(request["Data"], unique_data)
 
     def test_can_put_records_single_blob(self):
         unique_data = str(uuid4())
@@ -62,9 +60,7 @@ class TestKinesisListStreams(BaseSessionTest):
 
             record = request["Records"][0]
             self.assertEqual(record["PartitionKey"], "foo")
-            self.assert_base64encoded_str_equals(
-                record["Data"], unique_data
-            )
+            self.assert_base64encoded_str_equals(record["Data"], unique_data)
 
     def test_can_put_records_multiple_blob(self):
         with self.http_stubber as stub:
@@ -81,9 +77,5 @@ class TestKinesisListStreams(BaseSessionTest):
 
             record_foobar = request["Records"][0]
             record_barfoo = request["Records"][1]
-            self.assert_base64encoded_str_equals(
-                record_foobar["Data"], "foobar"
-            )
-            self.assert_base64encoded_str_equals(
-                record_barfoo["Data"], "barfoo"
-            )
+            self.assert_base64encoded_str_equals(record_foobar["Data"], "foobar")
+            self.assert_base64encoded_str_equals(record_barfoo["Data"], "barfoo")

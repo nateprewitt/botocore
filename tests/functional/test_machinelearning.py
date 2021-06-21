@@ -18,19 +18,18 @@ from tests import BaseSessionTest, ClientHTTPStubber
 class TestMachineLearning(BaseSessionTest):
     def setUp(self):
         super(TestMachineLearning, self).setUp()
-        self.region = 'us-west-2'
-        self.client = self.session.create_client(
-            'machinelearning', self.region)
+        self.region = "us-west-2"
+        self.client = self.session.create_client("machinelearning", self.region)
         self.http_stubber = ClientHTTPStubber(self.client)
 
     def test_predict(self):
-        self.http_stubber.add_response(body=b'{}')
+        self.http_stubber.add_response(body=b"{}")
         with self.http_stubber:
-            custom_endpoint = 'https://myendpoint.amazonaws.com/'
+            custom_endpoint = "https://myendpoint.amazonaws.com/"
             self.client.predict(
-                MLModelId='ml-foo',
-                Record={'Foo': 'Bar'},
-                PredictEndpoint=custom_endpoint
+                MLModelId="ml-foo",
+                Record={"Foo": "Bar"},
+                PredictEndpoint=custom_endpoint,
             )
             sent_request = self.http_stubber.requests[0]
             self.assertEqual(sent_request.url, custom_endpoint)

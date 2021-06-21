@@ -5,8 +5,11 @@ from botocore.compat import HAS_CRT
 
 from tests import requires_crt
 from tests.unit.auth.test_signers import (
-    TestS3SigV4Auth, TestSigV4Presign, TestSigV4Resign
+    TestS3SigV4Auth,
+    TestSigV4Presign,
+    TestSigV4Resign,
 )
+
 
 @requires_crt()
 class TestCrtS3SigV4Auth(TestS3SigV4Auth):
@@ -14,11 +17,13 @@ class TestCrtS3SigV4Auth(TestS3SigV4Auth):
     if HAS_CRT:
         AuthClass = botocore.crt.auth.CrtS3SigV4Auth
 
+
 @requires_crt()
 class TestCrtSigV4Resign(TestSigV4Resign):
     # Run same tests against CRT auth
     if HAS_CRT:
         AuthClass = botocore.crt.auth.CrtSigV4Auth
+
 
 @requires_crt()
 class TestCrtSigV4Presign(TestSigV4Presign):

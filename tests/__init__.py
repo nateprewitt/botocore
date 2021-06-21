@@ -34,9 +34,7 @@ from nose.tools import assert_equal
 import botocore.loaders
 import botocore.session
 from botocore.awsrequest import AWSResponse
-from botocore.compat import (
-    parse_qs, six, urlparse, HAS_CRT
-)
+from botocore.compat import parse_qs, six, urlparse, HAS_CRT
 from botocore import utils
 from botocore import credentials
 from botocore.stub import Stubber
@@ -53,8 +51,8 @@ def skip_unless_has_memory_collection(cls):
     indicate that if the platform does not support memory collection
     the tests should be skipped.
     """
-    if platform.system() not in ['Darwin', 'Linux']:
-        return unittest.skip('Memory tests only supported on mac/linux.')(cls)
+    if platform.system() not in ["Darwin", "Linux"]:
+        return unittest.skip("Memory tests only supported on mac/linux.")(cls)
     return cls
 
 
@@ -65,9 +63,12 @@ def skip_if_windows(reason):
         def test_some_non_windows_stuff(self):
             self.assertEqual(...)
     """
+
     def decorator(func):
-        return unittest.skipIf(
-            platform.system() not in ['Darwin', 'Linux'], reason)(func)
+        return unittest.skipIf(platform.system() not in ["Darwin", "Linux"], reason)(
+            func
+        )
+
     return decorator
 
 
@@ -77,6 +78,7 @@ def requires_crt(reason=None):
 
     def decorator(func):
         return unittest.skipIf(not HAS_CRT, reason)(func)
+
     return decorator
 
 
@@ -86,7 +88,7 @@ def random_chars(num_chars):
     Useful for creating resources with random names.
 
     """
-    return binascii.hexlify(os.urandom(int(num_chars / 2))).decode('ascii')
+    return binascii.hexlify(os.urandom(int(num_chars / 2))).decode("ascii")
 
 
 def create_session(**kwargs):
@@ -94,8 +96,8 @@ def create_session(**kwargs):
     # the _LOADER object is used as the loader
     # so that we reused the same models across tests.
     session = botocore.session.Session(**kwargs)
-    session.register_component('data_loader', _LOADER)
-    session.set_config_variable('credentials_file', 'noexist/foo/botocore')
+    session.register_component("data_loader", _LOADER)
+    session.set_config_variable("credentials_file", "noexist/foo/botocore")
     return session
 
 
@@ -112,9 +114,9 @@ def temporary_file(mode):
 
     """
     temporary_directory = tempfile.mkdtemp()
-    basename = 'tmpfile-%s-%s' % (int(time.time()), random.randint(1, 1000))
+    basename = "tmpfile-%s-%s" % (int(time.time()), random.randint(1, 1000))
     full_filename = os.path.join(temporary_directory, basename)
-    open(full_filename, 'w').close()
+    open(full_filename, "w").close()
     try:
         with open(full_filename, mode) as f:
             yield f
@@ -129,7 +131,7 @@ class BaseEnvVar(unittest.TestCase):
         # the environment.  Also will automatically restore state
         # for you in tearDown()
         self.environ = {}
-        self.environ_patch = mock.patch('os.environ', self.environ)
+        self.environ_patch = mock.patch("os.environ", self.environ)
         self.environ_patch.start()
 
     def tearDown(self):
@@ -150,12 +152,12 @@ class BaseSessionTest(BaseEnvVar):
 
     def setUp(self, **environ):
         super(BaseSessionTest, self).setUp()
-        self.environ['AWS_ACCESS_KEY_ID'] = 'access_key'
-        self.environ['AWS_SECRET_ACCESS_KEY'] = 'secret_key'
-        self.environ['AWS_CONFIG_FILE'] = 'no-exist-foo'
+        self.environ["AWS_ACCESS_KEY_ID"] = "access_key"
+        self.environ["AWS_SECRET_ACCESS_KEY"] = "secret_key"
+        self.environ["AWS_CONFIG_FILE"] = "no-exist-foo"
         self.environ.update(environ)
         self.session = create_session()
-        self.session.config_filename = 'no-exist-foo'
+        self.session.config_filename = "no-exist-foo"
 
 
 @skip_unless_has_memory_collection
@@ -166,8 +168,7 @@ class BaseClientDriverTest(unittest.TestCase):
         self.driver = ClientDriver()
         env = None
         if self.INJECT_DUMMY_CREDS:
-            env = {'AWS_ACCESS_KEY_ID': 'foo',
-                   'AWS_SECRET_ACCESS_KEY': 'bar'}
+            env = {"AWS_ACCESS_KEY_ID": "foo", "AWS_SECRET_ACCESS_KEY": "bar"}
         self.driver.start(env=env)
 
     def cmd(self, *args):
@@ -189,8 +190,7 @@ class BaseClientDriverTest(unittest.TestCase):
 
 class ClientDriver(object):
     CLIENT_SERVER = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'cmd-runner'
+        os.path.dirname(os.path.abspath(__file__)), "cmd-runner"
     )
 
     def __init__(self):
@@ -201,7 +201,7 @@ class ClientDriver(object):
         # It would be better to eventually switch to psutil,
         # which should allow us to test on windows, but for now
         # we'll just use ps and run on POSIX platforms.
-        command_list = ['ps', '-p', str(pid), '-o', 'rss']
+        command_list = ["ps", "-p", str(pid), "-o", "rss"]
         p = Popen(command_list, stdout=PIPE)
         stdout = p.communicate()[0]
         if not p.returncode == 0:
@@ -218,12 +218,13 @@ class ClientDriver(object):
 
     def start(self, env=None):
         """Start up the command runner process."""
-        self._popen = Popen([sys.executable, self.CLIENT_SERVER],
-                            stdout=PIPE, stdin=PIPE, env=env)
+        self._popen = Popen(
+            [sys.executable, self.CLIENT_SERVER], stdout=PIPE, stdin=PIPE, env=env
+        )
 
     def stop(self):
         """Shutdown the command runner process."""
-        self.cmd('exit')
+        self.cmd("exit")
         self._popen.wait()
 
     def send_cmd(self, *cmd):
@@ -244,8 +245,8 @@ class ClientDriver(object):
         send_cmd() instead of cmd().
 
         """
-        cmd_str = ' '.join(cmd) + '\n'
-        cmd_bytes = cmd_str.encode('utf-8')
+        cmd_str = " ".join(cmd) + "\n"
+        cmd_bytes = cmd_str.encode("utf-8")
         self._popen.stdin.write(cmd_bytes)
         self._popen.stdin.flush()
 
@@ -267,9 +268,8 @@ class ClientDriver(object):
         """
         self.send_cmd(*cmd)
         result = self._popen.stdout.readline().strip()
-        if result != b'OK':
-            raise RuntimeError(
-                "Error from command '%s': %s" % (cmd, result))
+        if result != b"OK":
+            raise RuntimeError("Error from command '%s': %s" % (cmd, result))
 
 
 # This is added to this file because it's used in both
@@ -295,18 +295,21 @@ class IntegerRefresher(credentials.RefreshableCredentials):
     _mandatory_refresh_timeout = 1
     _credentials_expire = 3
 
-    def __init__(self, creds_last_for=_credentials_expire,
-                 advisory_refresh=_advisory_refresh_timeout,
-                 mandatory_refresh=_mandatory_refresh_timeout,
-                 refresh_function=None):
-        expires_in = (
-            self._current_datetime() +
-            datetime.timedelta(seconds=creds_last_for))
+    def __init__(
+        self,
+        creds_last_for=_credentials_expire,
+        advisory_refresh=_advisory_refresh_timeout,
+        mandatory_refresh=_mandatory_refresh_timeout,
+        refresh_function=None,
+    ):
+        expires_in = self._current_datetime() + datetime.timedelta(
+            seconds=creds_last_for
+        )
         if refresh_function is None:
             refresh_function = self._do_refresh
         super(IntegerRefresher, self).__init__(
-            '0', '0', '0', expires_in,
-            refresh_function, 'INTREFRESH')
+            "0", "0", "0", expires_in, refresh_function, "INTREFRESH"
+        )
         self.creds_last_for = creds_last_for
         self.refresh_counter = 0
         self._advisory_refresh_timeout = advisory_refresh
@@ -318,10 +321,10 @@ class IntegerRefresher(credentials.RefreshableCredentials):
         next_id = str(current + 1)
 
         return {
-            'access_key': next_id,
-            'secret_key': next_id,
-            'token': next_id,
-            'expiry_time': self._seconds_later(self.creds_last_for),
+            "access_key": next_id,
+            "secret_key": next_id,
+            "token": next_id,
+            "expiry_time": self._seconds_later(self.creds_last_for),
         }
 
     def _seconds_later(self, num_seconds):
@@ -334,7 +337,7 @@ class IntegerRefresher(credentials.RefreshableCredentials):
 
     def _to_timestamp(self, datetime_obj):
         obj = utils.parse_to_aware_datetime(datetime_obj)
-        return obj.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return obj.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _current_timestamp(self):
         return self._to_timestamp(self._current_datetime())
@@ -346,8 +349,9 @@ class IntegerRefresher(credentials.RefreshableCredentials):
 def _urlparse(url):
     if isinstance(url, six.binary_type):
         # Not really necessary, but it helps to reduce noise on Python 2.x
-        url = url.decode('utf8')
+        url = url.decode("utf8")
     return urlparse(url)
+
 
 def assert_url_equal(url1, url2):
     parts1 = _urlparse(url1)
@@ -391,8 +395,9 @@ class BaseHTTPStubber(object):
         self.requests = []
         self.responses = []
 
-    def add_response(self, url='https://example.com', status=200, headers=None,
-                     body=b''):
+    def add_response(
+        self, url="https://example.com", status=200, headers=None, body=b""
+    ):
         if headers is None:
             headers = {}
 
@@ -402,13 +407,13 @@ class BaseHTTPStubber(object):
 
     @property
     def _events(self):
-        raise NotImplementedError('_events')
+        raise NotImplementedError("_events")
 
     def start(self):
-        self._events.register('before-send', self)
+        self._events.register("before-send", self)
 
     def stop(self):
-        self._events.unregister('before-send', self)
+        self._events.unregister("before-send", self)
 
     def __enter__(self):
         self.start()
@@ -426,7 +431,7 @@ class BaseHTTPStubber(object):
             else:
                 return response
         elif self._strict:
-            raise HTTPStubberException('Insufficient responses')
+            raise HTTPStubberException("Insufficient responses")
         else:
             return None
 
@@ -440,7 +445,7 @@ class ClientHTTPStubber(BaseHTTPStubber):
 class SessionHTTPStubber(BaseHTTPStubber):
     @property
     def _events(self):
-        return self._obj_with_event_emitter.get_component('event_emitter')
+        return self._obj_with_event_emitter.get_component("event_emitter")
 
 
 class ConsistencyWaiterException(Exception):
@@ -463,8 +468,10 @@ class ConsistencyWaiter(object):
     :param delay: The number of seconds to delay the next API call after a
     failed check call. Default of 5 seconds.
     """
-    def __init__(self, min_successes=1, max_attempts=20, delay=5,
-                 delay_initial_poll=False):
+
+    def __init__(
+        self, min_successes=1, max_attempts=20, delay=5, delay_initial_poll=False
+    ):
         self.min_successes = min_successes
         self.max_attempts = max_attempts
         self.delay = delay
@@ -501,7 +508,7 @@ class ConsistencyWaiter(object):
 
     def _fail_message(self, attempts, successes):
         format_args = (attempts, successes)
-        return 'Failed after %s attempts, only had %s successes' % format_args
+        return "Failed after %s attempts, only had %s successes" % format_args
 
 
 class StubbedSession(botocore.session.Session):
@@ -518,7 +525,8 @@ class StubbedSession(botocore.session.Session):
 
     def _create_stubbed_client(self, service_name, *args, **kwargs):
         client = super(StubbedSession, self).create_client(
-            service_name, *args, **kwargs)
+            service_name, *args, **kwargs
+        )
         stubber = Stubber(client)
         self._client_stubs[service_name] = stubber
         return client

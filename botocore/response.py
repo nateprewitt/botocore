@@ -38,6 +38,7 @@ class StreamingBody(object):
           is raised.
 
     """
+
     _DEFAULT_CHUNK_SIZE = 1024
 
     def __init__(self, raw_stream, content_length):
@@ -63,9 +64,12 @@ class StreamingBody(object):
             # in py2 and py3.  So this code has been pushed to botocore.compat.
             set_socket_timeout(self._raw_stream, timeout)
         except AttributeError:
-            logger.error("Cannot access the socket object of "
-                         "a streaming response.  It's possible "
-                         "the interface has changed.", exc_info=True)
+            logger.error(
+                "Cannot access the socket object of "
+                "a streaming response.  It's possible "
+                "the interface has changed.",
+                exc_info=True,
+            )
             raise
 
     def read(self, amt=None):
@@ -107,7 +111,7 @@ class StreamingBody(object):
         This is achieved by reading chunk of bytes (of size chunk_size) at a
         time from the raw stream, and then yielding lines from there.
         """
-        pending = b''
+        pending = b""
         for chunk in self.iter_chunks(chunk_size):
             lines = (pending + chunk).splitlines(True)
             for line in lines[:-1]:
@@ -130,11 +134,12 @@ class StreamingBody(object):
         # See: https://github.com/kennethreitz/requests/issues/1855
         # Basically, our http library doesn't do this for us, so we have
         # to do this ourself.
-        if self._content_length is not None and \
-                self._amount_read != int(self._content_length):
+        if self._content_length is not None and self._amount_read != int(
+            self._content_length
+        ):
             raise IncompleteReadError(
-                actual_bytes=self._amount_read,
-                expected_bytes=int(self._content_length))
+                actual_bytes=self._amount_read, expected_bytes=int(self._content_length)
+            )
 
     def close(self):
         """Close the underlying http response stream."""
@@ -142,22 +147,22 @@ class StreamingBody(object):
 
 
 def get_response(operation_model, http_response):
-    protocol = operation_model.metadata['protocol']
+    protocol = operation_model.metadata["protocol"]
     response_dict = {
-        'headers': http_response.headers,
-        'status_code': http_response.status_code,
+        "headers": http_response.headers,
+        "status_code": http_response.status_code,
     }
     # TODO: Unfortunately, we have to have error logic here.
     # If it looks like an error, in the streaming response case we
     # need to actually grab the contents.
-    if response_dict['status_code'] >= 300:
-        response_dict['body'] = http_response.content
+    if response_dict["status_code"] >= 300:
+        response_dict["body"] = http_response.content
     elif operation_model.has_streaming_output:
-        response_dict['body'] = StreamingBody(
-            http_response.raw, response_dict['headers'].get('content-length'))
+        response_dict["body"] = StreamingBody(
+            http_response.raw, response_dict["headers"].get("content-length")
+        )
     else:
-        response_dict['body'] = http_response.content
+        response_dict["body"] = http_response.content
 
     parser = parsers.create_parser(protocol)
-    return http_response, parser.parse(response_dict,
-                                       operation_model.output_shape)
+    return http_response, parser.parse(response_dict, operation_model.output_shape)

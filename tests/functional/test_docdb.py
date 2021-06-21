@@ -20,29 +20,28 @@ from tests import unittest
 
 
 class TestDocDBPresignUrlInjection(BaseSessionTest):
-
     def setUp(self):
         super(TestDocDBPresignUrlInjection, self).setUp()
-        self.client = self.session.create_client('docdb', 'us-west-2')
+        self.client = self.session.create_client("docdb", "us-west-2")
         self.http_stubber = ClientHTTPStubber(self.client)
 
     def assert_presigned_url_injected_in_request(self, body):
-        self.assertIn('PreSignedUrl', body)
-        self.assertNotIn('SourceRegion', body)
+        self.assertIn("PreSignedUrl", body)
+        self.assertNotIn("SourceRegion", body)
 
     def test_create_db_cluster(self):
         params = {
-            'DBClusterIdentifier': 'my-cluster',
-            'Engine': 'docdb',
-            'SourceRegion': 'us-east-1',
-            'MasterUsername': 'master',
-            'MasterUserPassword': 'mypassword'
+            "DBClusterIdentifier": "my-cluster",
+            "Engine": "docdb",
+            "SourceRegion": "us-east-1",
+            "MasterUsername": "master",
+            "MasterUserPassword": "mypassword",
         }
         response_body = (
-            b'<CreateDBClusterResponse>'
-            b'<CreateDBClusterResult>'
-            b'</CreateDBClusterResult>'
-            b'</CreateDBClusterResponse>'
+            b"<CreateDBClusterResponse>"
+            b"<CreateDBClusterResult>"
+            b"</CreateDBClusterResult>"
+            b"</CreateDBClusterResponse>"
         )
         self.http_stubber.add_response(body=response_body)
         with self.http_stubber:
@@ -52,15 +51,15 @@ class TestDocDBPresignUrlInjection(BaseSessionTest):
 
     def test_copy_db_cluster_snapshot(self):
         params = {
-            'SourceDBClusterSnapshotIdentifier': 'source-db',
-            'TargetDBClusterSnapshotIdentifier': 'target-db',
-            'SourceRegion': 'us-east-1'
+            "SourceDBClusterSnapshotIdentifier": "source-db",
+            "TargetDBClusterSnapshotIdentifier": "target-db",
+            "SourceRegion": "us-east-1",
         }
         response_body = (
-            b'<CopyDBClusterSnapshotResponse>'
-            b'<CopyDBClusterSnapshotResult>'
-            b'</CopyDBClusterSnapshotResult>'
-            b'</CopyDBClusterSnapshotResponse>'
+            b"<CopyDBClusterSnapshotResponse>"
+            b"<CopyDBClusterSnapshotResult>"
+            b"</CopyDBClusterSnapshotResult>"
+            b"</CopyDBClusterSnapshotResponse>"
         )
         self.http_stubber.add_response(body=response_body)
         with self.http_stubber:

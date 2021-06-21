@@ -72,7 +72,7 @@ def api_call_with_json_and_error(context, operation):
 
 @then(u'I expect the response error code to be "{}"')
 def then_expected_error(context, code):
-    assert_equal(context.error_response.response['Error']['Code'], code)
+    assert_equal(context.error_response.response["Error"]["Code"], code)
 
 
 @then(u'the value at "{}" should be a list')
@@ -97,8 +97,10 @@ def then_should_contain_key(context, key):
         raise AssertionError("Response is not a dict: %s" % context.response)
 
 
-@then(u'I expect the response error to contain a message')
+@then(u"I expect the response error to contain a message")
 def then_error_has_message(context):
-    if 'Message' not in context.error_response.response['Error']:
-        raise AssertionError("Message key missing from error response: %s" %
-                             context.error_response.response)
+    if "Message" not in context.error_response.response["Error"]:
+        raise AssertionError(
+            "Message key missing from error response: %s"
+            % context.error_response.response
+        )

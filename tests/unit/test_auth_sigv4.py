@@ -17,17 +17,17 @@ from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
 
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
-ACCESS_KEY = 'AKIDEXAMPLE'
+ACCESS_KEY = "AKIDEXAMPLE"
 
 
 class TestSigV4Auth(unittest.TestCase):
     def setUp(self):
         self.credentials = Credentials(ACCESS_KEY, SECRET_KEY)
-        self.sigv4 = SigV4Auth(self.credentials, 'host', 'us-weast-1')
+        self.sigv4 = SigV4Auth(self.credentials, "host", "us-weast-1")
 
     def test_signed_host_is_lowercase(self):
-        endpoint = 'https://S5.Us-WeAsT-2.AmAZonAwS.com'
-        expected_host = 's5.us-weast-2.amazonaws.com'
-        request = AWSRequest(method='GET', url=endpoint)
+        endpoint = "https://S5.Us-WeAsT-2.AmAZonAwS.com"
+        expected_host = "s5.us-weast-2.amazonaws.com"
+        request = AWSRequest(method="GET", url=endpoint)
         headers_to_sign = self.sigv4.headers_to_sign(request)
-        self.assertEqual(expected_host, headers_to_sign.get('host'))
+        self.assertEqual(expected_host, headers_to_sign.get("host"))

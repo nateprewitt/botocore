@@ -28,40 +28,38 @@ DEFAULT_ROLE_POLICY = """\
 ]}
 """
 
+
 class TestElasticTranscoder(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client(
-            'elastictranscoder', 'us-east-1')
-        self.s3_client = self.session.create_client('s3', 'us-east-1')
-        self.iam_client = self.session.create_client('iam', 'us-east-1')
+        self.client = self.session.create_client("elastictranscoder", "us-east-1")
+        self.s3_client = self.session.create_client("s3", "us-east-1")
+        self.iam_client = self.session.create_client("iam", "us-east-1")
 
     def create_bucket(self):
-        bucket_name = 'ets-bucket-1-%s' % random_chars(50)
+        bucket_name = "ets-bucket-1-%s" % random_chars(50)
         self.s3_client.create_bucket(Bucket=bucket_name)
-        waiter = self.s3_client.get_waiter('bucket_exists')
+        waiter = self.s3_client.get_waiter("bucket_exists")
         waiter.wait(Bucket=bucket_name)
-        self.addCleanup(
-            self.s3_client.delete_bucket, Bucket=bucket_name)
+        self.addCleanup(self.s3_client.delete_bucket, Bucket=bucket_name)
         return bucket_name
 
     def create_iam_role(self):
-        role_name = 'ets-role-name-1-%s' % random_chars(10)
+        role_name = "ets-role-name-1-%s" % random_chars(10)
         parsed = self.iam_client.create_role(
-            RoleName=role_name,
-            AssumeRolePolicyDocument=DEFAULT_ROLE_POLICY)
-        arn = parsed['Role']['Arn']
-        self.addCleanup(
-            self.iam_client.delete_role, RoleName=role_name)
+            RoleName=role_name, AssumeRolePolicyDocument=DEFAULT_ROLE_POLICY
+        )
+        arn = parsed["Role"]["Arn"]
+        self.addCleanup(self.iam_client.delete_role, RoleName=role_name)
         return arn
 
     def test_list_streams(self):
         parsed = self.client.list_pipelines()
-        self.assertIn('Pipelines', parsed)
+        self.assertIn("Pipelines", parsed)
 
     def test_list_presets(self):
-        parsed = self.client.list_presets(Ascending='true')
-        self.assertIn('Presets', parsed)
+        parsed = self.client.list_presets(Ascending="true")
+        self.assertIn("Presets", parsed)
 
     def test_create_pipeline(self):
         # In order to create a pipeline, we need to create 2 s3 buckets
@@ -69,17 +67,24 @@ class TestElasticTranscoder(unittest.TestCase):
         input_bucket = self.create_bucket()
         output_bucket = self.create_bucket()
         role = self.create_iam_role()
-        pipeline_name = 'botocore-test-create-%s' % random_chars(10)
+        pipeline_name = "botocore-test-create-%s" % random_chars(10)
 
         parsed = self.client.create_pipeline(
-            InputBucket=input_bucket, OutputBucket=output_bucket,
-            Role=role, Name=pipeline_name,
-            Notifications={'Progressing': '', 'Completed': '',
-                           'Warning': '', 'Error': ''})
-        pipeline_id = parsed['Pipeline']['Id']
+            InputBucket=input_bucket,
+            OutputBucket=output_bucket,
+            Role=role,
+            Name=pipeline_name,
+            Notifications={
+                "Progressing": "",
+                "Completed": "",
+                "Warning": "",
+                "Error": "",
+            },
+        )
+        pipeline_id = parsed["Pipeline"]["Id"]
         self.addCleanup(self.client.delete_pipeline, Id=pipeline_id)
-        self.assertIn('Pipeline', parsed)
+        self.assertIn("Pipeline", parsed)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

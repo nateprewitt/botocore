@@ -22,65 +22,58 @@ from botocore.exceptions import ClientError
 class TestEC2(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client(
-            'ec2', region_name='us-west-2')
+        self.client = self.session.create_client("ec2", region_name="us-west-2")
 
     def test_can_make_request(self):
         # Basic smoke test to ensure we can talk to ec2.
         result = self.client.describe_availability_zones()
-        zones = list(
-            sorted(a['ZoneName'] for a in result['AvailabilityZones']))
-        self.assertTrue(
-            set(['us-west-2a', 'us-west-2b', 'us-west-2c']).issubset(zones))
+        zones = list(sorted(a["ZoneName"] for a in result["AvailabilityZones"]))
+        self.assertTrue(set(["us-west-2a", "us-west-2b", "us-west-2c"]).issubset(zones))
 
     def test_get_console_output_handles_error(self):
         # Want to ensure the underlying ClientError is propogated
         # on error.
         with self.assertRaises(ClientError):
-            self.client.get_console_output(InstanceId='i-12345')
+            self.client.get_console_output(InstanceId="i-12345")
 
 
 class TestEC2Pagination(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client(
-            'ec2', region_name='us-west-2')
+        self.client = self.session.create_client("ec2", region_name="us-west-2")
 
     def test_can_paginate(self):
         # Using an operation that we know will paginate.
-        paginator = self.client.get_paginator(
-            'describe_reserved_instances_offerings')
+        paginator = self.client.get_paginator("describe_reserved_instances_offerings")
         pages = paginator.paginate()
         results = list(itertools.islice(pages, 0, 3))
         self.assertEqual(len(results), 3)
-        self.assertTrue(results[0]['NextToken'] != results[1]['NextToken'])
+        self.assertTrue(results[0]["NextToken"] != results[1]["NextToken"])
 
     def test_can_paginate_with_page_size(self):
         # Using an operation that we know will paginate.
-        paginator = self.client.get_paginator(
-            'describe_reserved_instances_offerings')
-        pages = paginator.paginate(PaginationConfig={'PageSize': 1})
+        paginator = self.client.get_paginator("describe_reserved_instances_offerings")
+        pages = paginator.paginate(PaginationConfig={"PageSize": 1})
         results = list(itertools.islice(pages, 0, 3))
         self.assertEqual(len(results), 3)
         for parsed in results:
-            reserved_inst_offer = parsed['ReservedInstancesOfferings']
+            reserved_inst_offer = parsed["ReservedInstancesOfferings"]
             # There should be no more than  one reserved instance
             # offering on each page.
             self.assertLessEqual(len(reserved_inst_offer), 1)
 
     def test_can_fall_back_to_old_starting_token(self):
         # Using an operation that we know will paginate.
-        paginator = self.client.get_paginator(
-            'describe_reserved_instances_offerings')
-        pages = paginator.paginate(PaginationConfig={'NextToken': 'None___1'})
+        paginator = self.client.get_paginator("describe_reserved_instances_offerings")
+        pages = paginator.paginate(PaginationConfig={"NextToken": "None___1"})
 
         try:
             results = list(itertools.islice(pages, 0, 3))
             self.assertEqual(len(results), 3)
-            self.assertTrue(results[0]['NextToken'] != results[1]['NextToken'])
+            self.assertTrue(results[0]["NextToken"] != results[1]["NextToken"])
         except ValueError:
             self.fail("Old style paginator failed.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

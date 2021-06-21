@@ -27,87 +27,90 @@ from botocore.docs.bcdoc.restdoc import ReSTDocument
 
 
 class TestStyle(unittest.TestCase):
-
     def test_spaces(self):
         style = ReSTStyle(None, 4)
-        self.assertEqual(style.spaces(), '')
+        self.assertEqual(style.spaces(), "")
         style.indent()
-        self.assertEqual(style.spaces(), '    ')
+        self.assertEqual(style.spaces(), "    ")
         style.indent()
-        self.assertEqual(style.spaces(), '        ')
+        self.assertEqual(style.spaces(), "        ")
         style.dedent()
-        self.assertEqual(style.spaces(), '    ')
+        self.assertEqual(style.spaces(), "    ")
         style.dedent()
-        self.assertEqual(style.spaces(), '')
+        self.assertEqual(style.spaces(), "")
         style.dedent()
-        self.assertEqual(style.spaces(), '')
+        self.assertEqual(style.spaces(), "")
 
     def test_bold(self):
         style = ReSTStyle(ReSTDocument())
-        style.bold('foobar')
-        self.assertEqual(style.doc.getvalue(), six.b('**foobar** '))
+        style.bold("foobar")
+        self.assertEqual(style.doc.getvalue(), six.b("**foobar** "))
 
     def test_empty_bold(self):
         style = ReSTStyle(ReSTDocument())
         style.start_b()
         style.end_b()
-        self.assertEqual(style.doc.getvalue(), six.b(''))
+        self.assertEqual(style.doc.getvalue(), six.b(""))
 
     def test_italics(self):
         style = ReSTStyle(ReSTDocument())
-        style.italics('foobar')
-        self.assertEqual(style.doc.getvalue(), six.b('*foobar* '))
+        style.italics("foobar")
+        self.assertEqual(style.doc.getvalue(), six.b("*foobar* "))
 
     def test_empty_italics(self):
         style = ReSTStyle(ReSTDocument())
         style.start_i()
         style.end_i()
-        self.assertEqual(style.doc.getvalue(), six.b(''))
+        self.assertEqual(style.doc.getvalue(), six.b(""))
 
     def test_p(self):
         style = ReSTStyle(ReSTDocument())
         style.start_p()
-        style.doc.write('foo')
+        style.doc.write("foo")
         style.end_p()
-        self.assertEqual(style.doc.getvalue(), six.b('\n\nfoo\n\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n\nfoo\n\n"))
 
     def test_code(self):
         style = ReSTStyle(ReSTDocument())
-        style.code('foobar')
-        self.assertEqual(style.doc.getvalue(), six.b('``foobar`` '))
+        style.code("foobar")
+        self.assertEqual(style.doc.getvalue(), six.b("``foobar`` "))
 
     def test_empty_code(self):
         style = ReSTStyle(ReSTDocument())
         style.start_code()
         style.end_code()
-        self.assertEqual(style.doc.getvalue(), six.b(''))
+        self.assertEqual(style.doc.getvalue(), six.b(""))
 
     def test_h1(self):
         style = ReSTStyle(ReSTDocument())
-        style.h1('foobar fiebaz')
+        style.h1("foobar fiebaz")
         self.assertEqual(
             style.doc.getvalue(),
-            six.b('\n\n*************\nfoobar fiebaz\n*************\n\n'))
+            six.b("\n\n*************\nfoobar fiebaz\n*************\n\n"),
+        )
 
     def test_h2(self):
         style = ReSTStyle(ReSTDocument())
-        style.h2('foobar fiebaz')
+        style.h2("foobar fiebaz")
         self.assertEqual(
             style.doc.getvalue(),
-            six.b('\n\n=============\nfoobar fiebaz\n=============\n\n'))
+            six.b("\n\n=============\nfoobar fiebaz\n=============\n\n"),
+        )
 
     def test_h3(self):
         style = ReSTStyle(ReSTDocument())
-        style.h3('foobar fiebaz')
+        style.h3("foobar fiebaz")
         self.assertEqual(
             style.doc.getvalue(),
-            six.b('\n\n-------------\nfoobar fiebaz\n-------------\n\n'))
+            six.b("\n\n-------------\nfoobar fiebaz\n-------------\n\n"),
+        )
 
     def test_ref(self):
         style = ReSTStyle(ReSTDocument())
-        style.ref('foobar', 'http://foo.bar.com')
-        self.assertEqual(style.doc.getvalue(),
-                         six.b(':doc:`foobar <http://foo.bar.com>`'))
+        style.ref("foobar", "http://foo.bar.com")
+        self.assertEqual(
+            style.doc.getvalue(), six.b(":doc:`foobar <http://foo.bar.com>`")
+        )
 
     def test_examples(self):
         style = ReSTStyle(ReSTDocument())
@@ -119,190 +122,185 @@ class TestStyle(unittest.TestCase):
 
     def test_codeblock(self):
         style = ReSTStyle(ReSTDocument())
-        style.codeblock('foobar')
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('::\n\n  foobar\n\n\n'))
+        style.codeblock("foobar")
+        self.assertEqual(style.doc.getvalue(), six.b("::\n\n  foobar\n\n\n"))
 
     def test_important(self):
         style = ReSTStyle(ReSTDocument())
         style.start_important()
         style.end_important()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. warning::\n\n  \n\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n\n.. warning::\n\n  \n\n"))
 
     def test_note(self):
         style = ReSTStyle(ReSTDocument())
         style.start_note()
         style.end_note()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. note::\n\n  \n\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n\n.. note::\n\n  \n\n"))
 
     def test_danger(self):
         style = ReSTStyle(ReSTDocument())
         style.start_danger()
         style.end_danger()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. danger::\n\n  \n\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n\n.. danger::\n\n  \n\n"))
 
     def test_toctree_html(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
+        style.doc.target = "html"
         style.toctree()
-        style.tocitem('foo')
-        style.tocitem('bar')
+        style.tocitem("foo")
+        style.tocitem("bar")
         self.assertEqual(
             style.doc.getvalue(),
-            six.b('\n.. toctree::\n  :maxdepth: 1'
-                  '\n  :titlesonly:\n\n  foo\n  bar\n'))
+            six.b(
+                "\n.. toctree::\n  :maxdepth: 1" "\n  :titlesonly:\n\n  foo\n  bar\n"
+            ),
+        )
 
     def test_toctree_man(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
+        style.doc.target = "man"
         style.toctree()
-        style.tocitem('foo')
-        style.tocitem('bar')
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n\n* foo\n\n\n* bar\n\n'))
+        style.tocitem("foo")
+        style.tocitem("bar")
+        self.assertEqual(style.doc.getvalue(), six.b("\n\n\n* foo\n\n\n* bar\n\n"))
 
     def test_hidden_toctree_html(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
+        style.doc.target = "html"
         style.hidden_toctree()
-        style.hidden_tocitem('foo')
-        style.hidden_tocitem('bar')
+        style.hidden_tocitem("foo")
+        style.hidden_tocitem("bar")
         self.assertEqual(
             style.doc.getvalue(),
-            six.b('\n.. toctree::\n  :maxdepth: 1'
-                  '\n  :hidden:\n\n  foo\n  bar\n'))
+            six.b("\n.. toctree::\n  :maxdepth: 1" "\n  :hidden:\n\n  foo\n  bar\n"),
+        )
 
     def test_hidden_toctree_non_html(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
+        style.doc.target = "man"
         style.hidden_toctree()
-        style.hidden_tocitem('foo')
-        style.hidden_tocitem('bar')
-        self.assertEqual(
-            style.doc.getvalue(),
-            six.b(''))
+        style.hidden_tocitem("foo")
+        style.hidden_tocitem("bar")
+        self.assertEqual(style.doc.getvalue(), six.b(""))
 
     def test_href_link(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_a(attrs=[('href', 'http://example.org')])
-        style.doc.write('example')
+        style.start_a(attrs=[("href", "http://example.org")])
+        style.doc.write("example")
         style.end_a()
         self.assertEqual(
-            style.doc.getvalue(),
-            six.b('`example <http://example.org>`__ ')
+            style.doc.getvalue(), six.b("`example <http://example.org>`__ ")
         )
 
     def test_escape_href_link(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_a(attrs=[('href', 'http://example.org')])
-        style.doc.write('foo: the next bar')
+        style.start_a(attrs=[("href", "http://example.org")])
+        style.doc.write("foo: the next bar")
         style.end_a()
         self.assertEqual(
-            style.doc.getvalue(),
-            six.b('`foo\\: the next bar <http://example.org>`__ '))
+            style.doc.getvalue(), six.b("`foo\\: the next bar <http://example.org>`__ ")
+        )
 
     def test_handle_no_text_hrefs(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_a(attrs=[('href', 'http://example.org')])
+        style.start_a(attrs=[("href", "http://example.org")])
         style.end_a()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('`<http://example.org>`__ '))
+        self.assertEqual(style.doc.getvalue(), six.b("`<http://example.org>`__ "))
 
     def test_sphinx_reference_label_html(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
-        style.sphinx_reference_label('foo', 'bar')
-        self.assertEqual(style.doc.getvalue(), six.b(':ref:`bar <foo>`'))
+        style.doc.target = "html"
+        style.sphinx_reference_label("foo", "bar")
+        self.assertEqual(style.doc.getvalue(), six.b(":ref:`bar <foo>`"))
 
     def test_sphinx_reference_label_html_no_text(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
-        style.sphinx_reference_label('foo')
-        self.assertEqual(style.doc.getvalue(), six.b(':ref:`foo <foo>`'))
+        style.doc.target = "html"
+        style.sphinx_reference_label("foo")
+        self.assertEqual(style.doc.getvalue(), six.b(":ref:`foo <foo>`"))
 
     def test_sphinx_reference_label_non_html(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
-        style.sphinx_reference_label('foo', 'bar')
-        self.assertEqual(style.doc.getvalue(), six.b('bar'))
+        style.doc.target = "man"
+        style.sphinx_reference_label("foo", "bar")
+        self.assertEqual(style.doc.getvalue(), six.b("bar"))
 
     def test_sphinx_reference_label_non_html_no_text(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
-        style.sphinx_reference_label('foo')
-        self.assertEqual(style.doc.getvalue(), six.b('foo'))
+        style.doc.target = "man"
+        style.sphinx_reference_label("foo")
+        self.assertEqual(style.doc.getvalue(), six.b("foo"))
 
     def test_table_of_contents(self):
         style = ReSTStyle(ReSTDocument())
         style.table_of_contents()
-        self.assertEqual(style.doc.getvalue(), six.b('.. contents:: '))
+        self.assertEqual(style.doc.getvalue(), six.b(".. contents:: "))
 
     def test_table_of_contents_with_title(self):
         style = ReSTStyle(ReSTDocument())
-        style.table_of_contents(title='Foo')
-        self.assertEqual(style.doc.getvalue(), six.b('.. contents:: Foo\n'))
+        style.table_of_contents(title="Foo")
+        self.assertEqual(style.doc.getvalue(), six.b(".. contents:: Foo\n"))
 
     def test_table_of_contents_with_title_and_depth(self):
         style = ReSTStyle(ReSTDocument())
-        style.table_of_contents(title='Foo', depth=2)
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('.. contents:: Foo\n   :depth: 2\n'))
+        style.table_of_contents(title="Foo", depth=2)
+        self.assertEqual(
+            style.doc.getvalue(), six.b(".. contents:: Foo\n   :depth: 2\n")
+        )
 
     def test_sphinx_py_class(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_sphinx_py_class('FooClass')
+        style.start_sphinx_py_class("FooClass")
         style.end_sphinx_py_class()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. py:class:: FooClass\n\n  \n\n'))
+        self.assertEqual(
+            style.doc.getvalue(), six.b("\n\n.. py:class:: FooClass\n\n  \n\n")
+        )
 
     def test_sphinx_py_method(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_sphinx_py_method('method')
+        style.start_sphinx_py_method("method")
         style.end_sphinx_py_method()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. py:method:: method\n\n  \n\n'))
+        self.assertEqual(
+            style.doc.getvalue(), six.b("\n\n.. py:method:: method\n\n  \n\n")
+        )
 
     def test_sphinx_py_method_with_params(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_sphinx_py_method('method', 'foo=None')
+        style.start_sphinx_py_method("method", "foo=None")
         style.end_sphinx_py_method()
         self.assertEqual(
-            style.doc.getvalue(),
-            six.b('\n\n.. py:method:: method(foo=None)\n\n  \n\n'))
+            style.doc.getvalue(), six.b("\n\n.. py:method:: method(foo=None)\n\n  \n\n")
+        )
 
     def test_sphinx_py_attr(self):
         style = ReSTStyle(ReSTDocument())
-        style.start_sphinx_py_attr('Foo')
+        style.start_sphinx_py_attr("Foo")
         style.end_sphinx_py_attr()
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('\n\n.. py:attribute:: Foo\n\n  \n\n'))
+        self.assertEqual(
+            style.doc.getvalue(), six.b("\n\n.. py:attribute:: Foo\n\n  \n\n")
+        )
 
     def test_write_py_doc_string(self):
         style = ReSTStyle(ReSTDocument())
         docstring = (
-            'This describes a function\n'
-            ':param foo: Describes foo\n'
-            'returns: None'
+            "This describes a function\n" ":param foo: Describes foo\n" "returns: None"
         )
         style.write_py_doc_string(docstring)
-        self.assertEqual(style.doc.getvalue(), six.b(docstring + '\n'))
+        self.assertEqual(style.doc.getvalue(), six.b(docstring + "\n"))
 
     def test_new_line(self):
         style = ReSTStyle(ReSTDocument())
         style.new_line()
-        self.assertEqual(style.doc.getvalue(), six.b('\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n"))
 
         style.do_p = False
         style.new_line()
-        self.assertEqual(style.doc.getvalue(), six.b('\n\n'))
+        self.assertEqual(style.doc.getvalue(), six.b("\n\n"))
 
     def test_list(self):
         style = ReSTStyle(ReSTDocument())
-        style.li('foo')
-        self.assertEqual(style.doc.getvalue(), six.b('\n* foo\n\n'))
+        style.li("foo")
+        self.assertEqual(style.doc.getvalue(), six.b("\n* foo\n\n"))
 
     def test_non_top_level_lists_are_indented(self):
         style = ReSTStyle(ReSTDocument())
@@ -312,7 +310,7 @@ class TestStyle(unittest.TestCase):
 
         # Write one list element
         style.start_li()
-        style.doc.handle_data('foo')
+        style.doc.handle_data("foo")
         style.end_li()
 
         self.assertEqual(style.doc.getvalue(), six.b("\n\n\n* foo\n"))
@@ -322,36 +320,35 @@ class TestStyle(unittest.TestCase):
 
         # Write an element to the nested list
         style.start_li()
-        style.doc.handle_data('bar')
+        style.doc.handle_data("bar")
         style.end_li()
 
-        self.assertEqual(style.doc.getvalue(),
-                         six.b("\n\n\n* foo\n\n\n  \n  * bar\n  "))
+        self.assertEqual(
+            style.doc.getvalue(), six.b("\n\n\n* foo\n\n\n  \n  * bar\n  ")
+        )
 
     def test_external_link(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
-        style.external_link('MyLink', 'http://example.com/foo')
-        self.assertEqual(style.doc.getvalue(),
-                         six.b('`MyLink <http://example.com/foo>`_'))
+        style.doc.target = "html"
+        style.external_link("MyLink", "http://example.com/foo")
+        self.assertEqual(
+            style.doc.getvalue(), six.b("`MyLink <http://example.com/foo>`_")
+        )
 
     def test_external_link_in_man_page(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
-        style.external_link('MyLink', 'http://example.com/foo')
-        self.assertEqual(style.doc.getvalue(), six.b('MyLink'))
+        style.doc.target = "man"
+        style.external_link("MyLink", "http://example.com/foo")
+        self.assertEqual(style.doc.getvalue(), six.b("MyLink"))
 
     def test_internal_link(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'html'
-        style.internal_link('MyLink', '/index')
-        self.assertEqual(
-            style.doc.getvalue(),
-            six.b(':doc:`MyLink </index>`')
-        )
+        style.doc.target = "html"
+        style.internal_link("MyLink", "/index")
+        self.assertEqual(style.doc.getvalue(), six.b(":doc:`MyLink </index>`"))
 
     def test_internal_link_in_man_page(self):
         style = ReSTStyle(ReSTDocument())
-        style.doc.target = 'man'
-        style.internal_link('MyLink', '/index')
-        self.assertEqual(style.doc.getvalue(), six.b('MyLink'))
+        style.doc.target = "man"
+        style.internal_link("MyLink", "/index")
+        self.assertEqual(style.doc.getvalue(), six.b("MyLink"))

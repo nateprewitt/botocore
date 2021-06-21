@@ -17,59 +17,48 @@ from nose.tools import assert_equal, raises
 
 from botocore.parsers import EventStreamXMLParser
 from botocore.eventstream import (
-    EventStreamMessage, MessagePrelude, EventStreamBuffer,
-    ChecksumMismatch, InvalidPayloadLength, InvalidHeadersLength,
-    DuplicateHeader, EventStreamHeaderParser, DecodeUtils, EventStream,
-    NoInitialResponseError
+    EventStreamMessage,
+    MessagePrelude,
+    EventStreamBuffer,
+    ChecksumMismatch,
+    InvalidPayloadLength,
+    InvalidHeadersLength,
+    DuplicateHeader,
+    EventStreamHeaderParser,
+    DecodeUtils,
+    EventStream,
+    NoInitialResponseError,
 )
 from botocore.exceptions import EventStreamError
 
 EMPTY_MESSAGE = (
-    b'\x00\x00\x00\x10\x00\x00\x00\x00\x05\xc2H\xeb}\x98\xc8\xff',
+    b"\x00\x00\x00\x10\x00\x00\x00\x00\x05\xc2H\xeb}\x98\xc8\xff",
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x10,
-            headers_length=0,
-            crc=0x05c248eb,
-        ),
+        prelude=MessagePrelude(total_length=0x10, headers_length=0, crc=0x05C248EB,),
         headers={},
-        payload=b'',
-        crc=0x7d98c8ff,
-    )
+        payload=b"",
+        crc=0x7D98C8FF,
+    ),
 )
 
 INT8_HEADER = (
-    (
-        b"\x00\x00\x00\x17\x00\x00\x00\x07)\x86\x01X\x04"
-        b"byte\x02\xff\xc2\xf8i\xdc"
-    ),
+    (b"\x00\x00\x00\x17\x00\x00\x00\x07)\x86\x01X\x04" b"byte\x02\xff\xc2\xf8i\xdc"),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x17,
-            headers_length=0x7,
-            crc=0x29860158,
-        ),
-        headers={'byte': -1},
-        payload=b'',
-        crc=0xc2f869dc,
-    )
+        prelude=MessagePrelude(total_length=0x17, headers_length=0x7, crc=0x29860158,),
+        headers={"byte": -1},
+        payload=b"",
+        crc=0xC2F869DC,
+    ),
 )
 
 INT16_HEADER = (
-    (
-        b"\x00\x00\x00\x19\x00\x00\x00\tq\x0e\x92>\x05"
-        b"short\x03\xff\xff\xb2|\xb6\xcc"
-    ),
+    (b"\x00\x00\x00\x19\x00\x00\x00\tq\x0e\x92>\x05" b"short\x03\xff\xff\xb2|\xb6\xcc"),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x19,
-            headers_length=0x9,
-            crc=0x710e923e,
-        ),
-        headers={'short': -1},
-        payload=b'',
-        crc=0xb27cb6cc,
-    )
+        prelude=MessagePrelude(total_length=0x19, headers_length=0x9, crc=0x710E923E,),
+        headers={"short": -1},
+        payload=b"",
+        crc=0xB27CB6CC,
+    ),
 )
 
 INT32_HEADER = (
@@ -78,15 +67,11 @@ INT32_HEADER = (
         b"integer\x04\xff\xff\xff\xff\x8b\x8e\x12\xeb"
     ),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x1D,
-            headers_length=0xD,
-            crc=0x83e3f0e7,
-        ),
-        headers={'integer': -1},
-        payload=b'',
-        crc=0x8b8e12eb,
-    )
+        prelude=MessagePrelude(total_length=0x1D, headers_length=0xD, crc=0x83E3F0E7,),
+        headers={"integer": -1},
+        payload=b"",
+        crc=0x8B8E12EB,
+    ),
 )
 
 INT64_HEADER = (
@@ -95,96 +80,82 @@ INT64_HEADER = (
         b"long\x05\xff\xff\xff\xff\xff\xff\xff\xffK\xc22\xda"
     ),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x1E,
-            headers_length=0xE,
-            crc=0x5d4adb8d,
-        ),
-        headers={'long': -1},
-        payload=b'',
-        crc=0x4bc232da,
-    )
+        prelude=MessagePrelude(total_length=0x1E, headers_length=0xE, crc=0x5D4ADB8D,),
+        headers={"long": -1},
+        payload=b"",
+        crc=0x4BC232DA,
+    ),
 )
 
 PAYLOAD_NO_HEADERS = (
     b"\x00\x00\x00\x1d\x00\x00\x00\x00\xfdR\x8cZ{'foo':'bar'}\xc3e96",
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x1d,
-            headers_length=0,
-            crc=0xfd528c5a,
-        ),
+        prelude=MessagePrelude(total_length=0x1D, headers_length=0, crc=0xFD528C5A,),
         headers={},
         payload=b"{'foo':'bar'}",
-        crc=0xc3653936,
-    )
+        crc=0xC3653936,
+    ),
 )
 
 PAYLOAD_ONE_STR_HEADER = (
-    (b"\x00\x00\x00=\x00\x00\x00 \x07\xfd\x83\x96\x0ccontent-type\x07\x00\x10"
-     b"application/json{'foo':'bar'}\x8d\x9c\x08\xb1"),
+    (
+        b"\x00\x00\x00=\x00\x00\x00 \x07\xfd\x83\x96\x0ccontent-type\x07\x00\x10"
+        b"application/json{'foo':'bar'}\x8d\x9c\x08\xb1"
+    ),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x3d,
-            headers_length=0x20,
-            crc=0x07fd8396,
-        ),
-        headers={'content-type': 'application/json'},
+        prelude=MessagePrelude(total_length=0x3D, headers_length=0x20, crc=0x07FD8396,),
+        headers={"content-type": "application/json"},
         payload=b"{'foo':'bar'}",
-        crc=0x8d9c08b1,
-    )
+        crc=0x8D9C08B1,
+    ),
 )
 
 ALL_HEADERS_TYPES = (
-    (b"\x00\x00\x00\x62\x00\x00\x00\x52\x03\xb5\xcb\x9c"
-     b"\x010\x00\x011\x01\x012\x02\x02\x013\x03\x00\x03"
-     b"\x014\x04\x00\x00\x00\x04\x015\x05\x00\x00\x00\x00\x00\x00\x00\x05"
-     b"\x016\x06\x00\x05bytes\x017\x07\x00\x04utf8"
-     b"\x018\x08\x00\x00\x00\x00\x00\x00\x00\x08\x019\x090123456789abcdef"
-     b"\x63\x35\x36\x71"),
+    (
+        b"\x00\x00\x00\x62\x00\x00\x00\x52\x03\xb5\xcb\x9c"
+        b"\x010\x00\x011\x01\x012\x02\x02\x013\x03\x00\x03"
+        b"\x014\x04\x00\x00\x00\x04\x015\x05\x00\x00\x00\x00\x00\x00\x00\x05"
+        b"\x016\x06\x00\x05bytes\x017\x07\x00\x04utf8"
+        b"\x018\x08\x00\x00\x00\x00\x00\x00\x00\x08\x019\x090123456789abcdef"
+        b"\x63\x35\x36\x71"
+    ),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x62,
-            headers_length=0x52,
-            crc=0x03b5cb9c,
-        ),
+        prelude=MessagePrelude(total_length=0x62, headers_length=0x52, crc=0x03B5CB9C,),
         headers={
-            '0': True,
-            '1': False,
-            '2': 0x02,
-            '3': 0x03,
-            '4': 0x04,
-            '5': 0x05,
-            '6': b'bytes',
-            '7': u'utf8',
-            '8': 0x08,
-            '9': b'0123456789abcdef',
+            "0": True,
+            "1": False,
+            "2": 0x02,
+            "3": 0x03,
+            "4": 0x04,
+            "5": 0x05,
+            "6": b"bytes",
+            "7": u"utf8",
+            "8": 0x08,
+            "9": b"0123456789abcdef",
         },
         payload=b"",
         crc=0x63353671,
-    )
+    ),
 )
 
 ERROR_EVENT_MESSAGE = (
-    (b"\x00\x00\x00\x52\x00\x00\x00\x42\xbf\x23\x63\x7e"
-     b"\x0d:message-type\x07\x00\x05error"
-     b"\x0b:error-code\x07\x00\x04code"
-     b"\x0e:error-message\x07\x00\x07message"
-     b"\x6b\x6c\xea\x3d"),
+    (
+        b"\x00\x00\x00\x52\x00\x00\x00\x42\xbf\x23\x63\x7e"
+        b"\x0d:message-type\x07\x00\x05error"
+        b"\x0b:error-code\x07\x00\x04code"
+        b"\x0e:error-message\x07\x00\x07message"
+        b"\x6b\x6c\xea\x3d"
+    ),
     EventStreamMessage(
-        prelude=MessagePrelude(
-            total_length=0x52,
-            headers_length=0x42,
-            crc=0xbf23637e,
-        ),
+        prelude=MessagePrelude(total_length=0x52, headers_length=0x42, crc=0xBF23637E,),
         headers={
-            ':message-type': 'error',
-            ':error-code': 'code',
-            ':error-message': 'message',
+            ":message-type": "error",
+            ":error-code": "code",
+            ":error-message": "message",
         },
-        payload=b'',
-        crc=0x6b6cea3d,
-    )
+        payload=b"",
+        crc=0x6B6CEA3D,
+    ),
 )
 
 # Tuples of encoded messages and their expected decoded output
@@ -201,31 +172,37 @@ POSITIVE_CASES = [
 ]
 
 CORRUPTED_HEADER_LENGTH = (
-    (b"\x00\x00\x00=\xFF\x00\x01\x02\x07\xfd\x83\x96\x0ccontent-type\x07\x00"
-     b"\x10application/json{'foo':'bar'}\x8d\x9c\x08\xb1"),
-    InvalidHeadersLength
+    (
+        b"\x00\x00\x00=\xFF\x00\x01\x02\x07\xfd\x83\x96\x0ccontent-type\x07\x00"
+        b"\x10application/json{'foo':'bar'}\x8d\x9c\x08\xb1"
+    ),
+    InvalidHeadersLength,
 )
 
 CORRUPTED_HEADERS = (
-    (b"\x00\x00\x00=\x00\x00\x00 \x07\xfd\x83\x96\x0ccontent+type\x07\x00\x10"
-     b"application/json{'foo':'bar'}\x8d\x9c\x08\xb1"),
-    ChecksumMismatch
+    (
+        b"\x00\x00\x00=\x00\x00\x00 \x07\xfd\x83\x96\x0ccontent+type\x07\x00\x10"
+        b"application/json{'foo':'bar'}\x8d\x9c\x08\xb1"
+    ),
+    ChecksumMismatch,
 )
 
 CORRUPTED_LENGTH = (
     b"\x01\x00\x00\x1d\x00\x00\x00\x00\xfdR\x8cZ{'foo':'bar'}\xc3e96",
-    InvalidPayloadLength
+    InvalidPayloadLength,
 )
 
 CORRUPTED_PAYLOAD = (
     b"\x00\x00\x00\x1d\x00\x00\x00\x00\xfdR\x8cZ{'foo':'bar'\x8d\xc3e96",
-    ChecksumMismatch
+    ChecksumMismatch,
 )
 
 DUPLICATE_HEADER = (
-    (b"\x00\x00\x00\x24\x00\x00\x00\x14\x4b\xb9\x82\xd0"
-     b"\x04test\x04asdf\x04test\x04asdf\xf3\xf4\x75\x63"),
-    DuplicateHeader
+    (
+        b"\x00\x00\x00\x24\x00\x00\x00\x14\x4b\xb9\x82\xd0"
+        b"\x04test\x04asdf\x04test\x04asdf\xf3\xf4\x75\x63"
+    ),
+    DuplicateHeader,
 )
 
 # Tuples of encoded messages and their expected exception
@@ -240,14 +217,8 @@ NEGATIVE_CASES = [
 
 def assert_message_equal(message_a, message_b):
     """Asserts all fields for two messages are equal. """
-    assert_equal(
-        message_a.prelude.total_length,
-        message_b.prelude.total_length
-    )
-    assert_equal(
-        message_a.prelude.headers_length,
-        message_b.prelude.headers_length
-    )
+    assert_equal(message_a.prelude.total_length, message_b.prelude.total_length)
+    assert_equal(message_a.prelude.headers_length, message_b.prelude.headers_length)
     assert_equal(message_a.prelude.crc, message_b.prelude.crc)
     assert_equal(message_a.headers, message_b.headers)
     assert_equal(message_a.payload, message_b.payload)
@@ -263,7 +234,7 @@ def test_partial_message():
     event_buffer.add_data(data[:mid_point])
     messages = list(event_buffer)
     assert_equal(messages, [])
-    event_buffer.add_data(data[mid_point:len(data)])
+    event_buffer.add_data(data[mid_point : len(data)])
     for message in event_buffer:
         assert_message_equal(message, EMPTY_MESSAGE[1])
 
@@ -308,23 +279,23 @@ def test_negative_cases():
 def test_header_parser():
     """Test that the header parser supports all header types. """
     headers_data = (
-     b"\x010\x00\x011\x01\x012\x02\x02\x013\x03\x00\x03"
-     b"\x014\x04\x00\x00\x00\x04\x015\x05\x00\x00\x00\x00\x00\x00\x00\x05"
-     b"\x016\x06\x00\x05bytes\x017\x07\x00\x04utf8"
-     b"\x018\x08\x00\x00\x00\x00\x00\x00\x00\x08\x019\x090123456789abcdef"
+        b"\x010\x00\x011\x01\x012\x02\x02\x013\x03\x00\x03"
+        b"\x014\x04\x00\x00\x00\x04\x015\x05\x00\x00\x00\x00\x00\x00\x00\x05"
+        b"\x016\x06\x00\x05bytes\x017\x07\x00\x04utf8"
+        b"\x018\x08\x00\x00\x00\x00\x00\x00\x00\x08\x019\x090123456789abcdef"
     )
 
     expected_headers = {
-        '0': True,
-        '1': False,
-        '2': 0x02,
-        '3': 0x03,
-        '4': 0x04,
-        '5': 0x05,
-        '6': b'bytes',
-        '7': u'utf8',
-        '8': 0x08,
-        '9': b'0123456789abcdef',
+        "0": True,
+        "1": False,
+        "2": 0x02,
+        "3": 0x03,
+        "4": 0x04,
+        "5": 0x05,
+        "6": b"bytes",
+        "7": u"utf8",
+        "8": 0x08,
+        "9": b"0123456789abcdef",
     }
 
     parser = EventStreamHeaderParser()
@@ -343,95 +314,98 @@ def test_message_prelude_properties():
 
 def test_message_to_response_dict():
     response_dict = PAYLOAD_ONE_STR_HEADER[1].to_response_dict()
-    assert_equal(response_dict['status_code'], 200)
-    expected_headers = {'content-type': 'application/json'}
-    assert_equal(response_dict['headers'], expected_headers)
-    assert_equal(response_dict['body'], b"{'foo':'bar'}")
+    assert_equal(response_dict["status_code"], 200)
+    expected_headers = {"content-type": "application/json"}
+    assert_equal(response_dict["headers"], expected_headers)
+    assert_equal(response_dict["body"], b"{'foo':'bar'}")
 
 
 def test_message_to_response_dict_error():
     response_dict = ERROR_EVENT_MESSAGE[1].to_response_dict()
-    assert_equal(response_dict['status_code'], 400)
+    assert_equal(response_dict["status_code"], 400)
     headers = {
-        ':message-type': 'error',
-        ':error-code': 'code',
-        ':error-message': 'message',
+        ":message-type": "error",
+        ":error-code": "code",
+        ":error-message": "message",
     }
-    assert_equal(response_dict['headers'], headers)
-    assert_equal(response_dict['body'], b'')
+    assert_equal(response_dict["headers"], headers)
+    assert_equal(response_dict["body"], b"")
 
 
 def test_unpack_uint8():
-    (value, bytes_consumed) = DecodeUtils.unpack_uint8(b'\xDE')
+    (value, bytes_consumed) = DecodeUtils.unpack_uint8(b"\xDE")
     assert_equal(bytes_consumed, 1)
     assert_equal(value, 0xDE)
 
 
 def test_unpack_uint32():
-    (value, bytes_consumed) = DecodeUtils.unpack_uint32(b'\xDE\xAD\xBE\xEF')
+    (value, bytes_consumed) = DecodeUtils.unpack_uint32(b"\xDE\xAD\xBE\xEF")
     assert_equal(bytes_consumed, 4)
     assert_equal(value, 0xDEADBEEF)
 
 
 def test_unpack_int8():
-    (value, bytes_consumed) = DecodeUtils.unpack_int8(b'\xFE')
+    (value, bytes_consumed) = DecodeUtils.unpack_int8(b"\xFE")
     assert_equal(bytes_consumed, 1)
     assert_equal(value, -2)
 
 
 def test_unpack_int16():
-    (value, bytes_consumed) = DecodeUtils.unpack_int16(b'\xFF\xFE')
+    (value, bytes_consumed) = DecodeUtils.unpack_int16(b"\xFF\xFE")
     assert_equal(bytes_consumed, 2)
     assert_equal(value, -2)
 
 
 def test_unpack_int32():
-    (value, bytes_consumed) = DecodeUtils.unpack_int32(b'\xFF\xFF\xFF\xFE')
+    (value, bytes_consumed) = DecodeUtils.unpack_int32(b"\xFF\xFF\xFF\xFE")
     assert_equal(bytes_consumed, 4)
     assert_equal(value, -2)
 
 
 def test_unpack_int64():
-    test_bytes = b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE'
+    test_bytes = b"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE"
     (value, bytes_consumed) = DecodeUtils.unpack_int64(test_bytes)
     assert_equal(bytes_consumed, 8)
     assert_equal(value, -2)
 
 
 def test_unpack_array_short():
-    test_bytes = b'\x00\x10application/json'
+    test_bytes = b"\x00\x10application/json"
     (value, bytes_consumed) = DecodeUtils.unpack_byte_array(test_bytes)
     assert_equal(bytes_consumed, 18)
-    assert_equal(value, b'application/json')
+    assert_equal(value, b"application/json")
 
 
 def test_unpack_byte_array_int():
     (value, array_bytes_consumed) = DecodeUtils.unpack_byte_array(
-        b'\x00\x00\x00\x10application/json', length_byte_size=4)
+        b"\x00\x00\x00\x10application/json", length_byte_size=4
+    )
     assert_equal(array_bytes_consumed, 20)
-    assert_equal(value, b'application/json')
+    assert_equal(value, b"application/json")
 
 
 def test_unpack_utf8_string():
-    length = b'\x00\x09'
-    utf8_string = b'\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e'
+    length = b"\x00\x09"
+    utf8_string = b"\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"
     encoded = length + utf8_string
     (value, bytes_consumed) = DecodeUtils.unpack_utf8_string(encoded)
     assert_equal(bytes_consumed, 11)
-    assert_equal(value, utf8_string.decode('utf-8'))
+    assert_equal(value, utf8_string.decode("utf-8"))
 
 
 def test_unpack_prelude():
-    data = b'\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03'
+    data = b"\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03"
     prelude = DecodeUtils.unpack_prelude(data)
     assert_equal(prelude, ((1, 2, 3), 12))
 
 
 def create_mock_raw_stream(*data):
     raw_stream = Mock()
+
     def generator():
         for chunk in data:
             yield chunk
+
     raw_stream.stream = generator
     return raw_stream
 
@@ -443,14 +417,14 @@ def test_event_stream_wrapper_iteration():
     )
     parser = Mock(spec=EventStreamXMLParser)
     output_shape = Mock()
-    event_stream = EventStream(raw_stream, output_shape, parser, '')
+    event_stream = EventStream(raw_stream, output_shape, parser, "")
     events = list(event_stream)
     assert_equal(len(events), 1)
 
     response_dict = {
-        'headers': {'event-id': 0x0000a00c},
-        'body': b"{'foo':'bar'}",
-        'status_code': 200,
+        "headers": {"event-id": 0x0000A00C},
+        "body": b"{'foo':'bar'}",
+        "status_code": 200,
     }
     parser.parse.assert_called_with(response_dict, output_shape)
 
@@ -461,31 +435,31 @@ def test_eventstream_wrapper_iteration_error():
     parser = Mock(spec=EventStreamXMLParser)
     parser.parse.return_value = {}
     output_shape = Mock()
-    event_stream = EventStream(raw_stream, output_shape, parser, '')
+    event_stream = EventStream(raw_stream, output_shape, parser, "")
     list(event_stream)
 
 
 def test_event_stream_wrapper_close():
     raw_stream = Mock()
-    event_stream = EventStream(raw_stream, None, None, '')
+    event_stream = EventStream(raw_stream, None, None, "")
     event_stream.close()
     raw_stream.close.assert_called_once_with()
 
 
 def test_event_stream_initial_response():
     raw_stream = create_mock_raw_stream(
-        b'\x00\x00\x00~\x00\x00\x00O\xc5\xa3\xdd\xc6\r:message-type\x07\x00',
-        b'\x05event\x0b:event-type\x07\x00\x10initial-response\r:content-type',
-        b'\x07\x00\ttext/json{"InitialResponse": "sometext"}\xf6\x98$\x83'
+        b"\x00\x00\x00~\x00\x00\x00O\xc5\xa3\xdd\xc6\r:message-type\x07\x00",
+        b"\x05event\x0b:event-type\x07\x00\x10initial-response\r:content-type",
+        b'\x07\x00\ttext/json{"InitialResponse": "sometext"}\xf6\x98$\x83',
     )
     parser = Mock(spec=EventStreamXMLParser)
     output_shape = Mock()
-    event_stream = EventStream(raw_stream, output_shape, parser, '')
+    event_stream = EventStream(raw_stream, output_shape, parser, "")
     event = event_stream.get_initial_response()
     headers = {
-        ':message-type': 'event',
-        ':event-type': 'initial-response',
-        ':content-type': 'text/json',
+        ":message-type": "event",
+        ":event-type": "initial-response",
+        ":content-type": "text/json",
     }
     payload = b'{"InitialResponse": "sometext"}'
     assert event.headers == headers
@@ -500,14 +474,14 @@ def test_event_stream_initial_response_wrong_type():
     )
     parser = Mock(spec=EventStreamXMLParser)
     output_shape = Mock()
-    event_stream = EventStream(raw_stream, output_shape, parser, '')
+    event_stream = EventStream(raw_stream, output_shape, parser, "")
     event_stream.get_initial_response()
 
 
 @raises(NoInitialResponseError)
 def test_event_stream_initial_response_no_event():
-    raw_stream = create_mock_raw_stream(b'')
+    raw_stream = create_mock_raw_stream(b"")
     parser = Mock(spec=EventStreamXMLParser)
     output_shape = Mock()
-    event_stream = EventStream(raw_stream, output_shape, parser, '')
+    event_stream = EventStream(raw_stream, output_shape, parser, "")
     event_stream.get_initial_response()

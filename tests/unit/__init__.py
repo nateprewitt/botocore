@@ -16,8 +16,7 @@ from tests import unittest
 
 
 class BaseResponseTest(unittest.TestCase):
-    def assert_response_with_subset_metadata(self, actual_response,
-                                             expected_response):
+    def assert_response_with_subset_metadata(self, actual_response, expected_response):
         """
         Compares two parsed service responses. For ResponseMetadata, it will
         only assert that the expected is a proper subset of the actual. This
@@ -27,8 +26,8 @@ class BaseResponseTest(unittest.TestCase):
         actual = copy.copy(actual_response)
         expected = copy.copy(expected_response)
 
-        actual_metadata = actual.pop('ResponseMetadata', {})
-        expected_metadata = expected.pop('ResponseMetadata', {})
+        actual_metadata = actual.pop("ResponseMetadata", {})
+        expected_metadata = expected.pop("ResponseMetadata", {})
 
         self.assertEqual(actual, expected)
         self.assert_dict_is_proper_subset(actual_metadata, expected_metadata)
@@ -37,5 +36,6 @@ class BaseResponseTest(unittest.TestCase):
         """
         Asserts that a dictionary is a proper subset of another.
         """
-        self.assertTrue(all((k in superset and superset[k] == v)
-                            for k, v in subset.items()))
+        self.assertTrue(
+            all((k in superset and superset[k] == v) for k, v in subset.items())
+        )

@@ -20,21 +20,26 @@ from botocore.exceptions import NoCredentialsError
 from botocore import xform_name
 
 
-REGIONS = defaultdict(lambda: 'us-east-1')
+REGIONS = defaultdict(lambda: "us-east-1")
 PUBLIC_API_TESTS = {
     "cognito-identity": {
         "GetId": {"IdentityPoolId": "region:1234"},
         "GetOpenIdToken": {"IdentityId": "region:1234"},
         "UnlinkIdentity": {
-            "IdentityId": "region:1234", "Logins": {}, "LoginsToRemove": []},
+            "IdentityId": "region:1234",
+            "Logins": {},
+            "LoginsToRemove": [],
+        },
         "GetCredentialsForIdentity": {"IdentityId": "region:1234"},
     },
     "sts": {
         "AssumeRoleWithSaml": {
-            "PrincipalArn": "a"*20, "RoleArn": "a"*20, "SAMLAssertion": "abcd",
+            "PrincipalArn": "a" * 20,
+            "RoleArn": "a" * 20,
+            "SAMLAssertion": "abcd",
         },
         "AssumeRoleWithWebIdentity": {
-            "RoleArn": "a"*20,
+            "RoleArn": "a" * 20,
             "RoleSessionName": "foo",
             "WebIdentityToken": "abcd",
         },
@@ -54,11 +59,11 @@ def _test_public_apis_will_not_be_signed(client, operation, kwargs):
         except EarlyExit:
             pass
         request = http_stubber.requests[0]
-    sig_v2_disabled = 'SignatureVersion=2' not in request.url
+    sig_v2_disabled = "SignatureVersion=2" not in request.url
     assert sig_v2_disabled, "SigV2 is incorrectly enabled"
-    sig_v3_disabled = 'X-Amzn-Authorization' not in request.headers
+    sig_v3_disabled = "X-Amzn-Authorization" not in request.headers
     assert sig_v3_disabled, "SigV3 is incorrectly enabled"
-    sig_v4_disabled = 'Authorization' not in request.headers
+    sig_v4_disabled = "Authorization" not in request.headers
     assert sig_v4_disabled, "SigV4 is incorrectly enabled"
 
 

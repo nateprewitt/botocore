@@ -15,28 +15,32 @@ from botocore.loaders import Loader
 from botocore.exceptions import DataNotFoundError
 
 
-def _test_model_is_not_lost(service_name, type_name,
-                            previous_version, latest_version):
+def _test_model_is_not_lost(service_name, type_name, previous_version, latest_version):
     # Make sure if a paginator and/or waiter exists in previous version,
     # there will be a successor existing in latest version.
     loader = Loader()
     try:
-        previous = loader.load_service_model(
-            service_name, type_name, previous_version)
+        previous = loader.load_service_model(service_name, type_name, previous_version)
     except DataNotFoundError:
         pass
     else:
         try:
-            latest = loader.load_service_model(
-                service_name, type_name, latest_version)
+            latest = loader.load_service_model(service_name, type_name, latest_version)
         except DataNotFoundError as e:
             raise AssertionError(
-                "%s must exist for %s: %s" % (type_name, service_name, e))
+                "%s must exist for %s: %s" % (type_name, service_name, e)
+            )
+
 
 def test_paginators_and_waiters_are_not_lost_in_new_version():
     for service_name in Session().get_available_services():
-        versions = Loader().list_api_versions(service_name, 'service-2')
+        versions = Loader().list_api_versions(service_name, "service-2")
         if len(versions) > 1:
-            for type_name in ['paginators-1', 'waiters-2']:
-                yield (_test_model_is_not_lost, service_name,
-                       type_name, versions[-2], versions[-1])
+            for type_name in ["paginators-1", "waiters-2"]:
+                yield (
+                    _test_model_is_not_lost,
+                    service_name,
+                    type_name,
+                    versions[-2],
+                    versions[-1],
+                )

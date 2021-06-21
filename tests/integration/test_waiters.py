@@ -19,26 +19,25 @@ from botocore.exceptions import WaiterError
 
 
 # This is the same test as above, except using the client interface.
-@attr('slow')
+@attr("slow")
 class TestWaiterForDynamoDB(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client('dynamodb', 'us-west-2')
+        self.client = self.session.create_client("dynamodb", "us-west-2")
 
     def test_create_table_and_wait(self):
-        table_name = 'botocoretest-%s' % random_chars(10)
+        table_name = "botocoretest-%s" % random_chars(10)
         self.client.create_table(
             TableName=table_name,
-            ProvisionedThroughput={"ReadCapacityUnits": 5,
-                                   "WriteCapacityUnits": 5},
+            ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
             KeySchema=[{"AttributeName": "foo", "KeyType": "HASH"}],
-            AttributeDefinitions=[{"AttributeName": "foo",
-                                   "AttributeType": "S"}])
+            AttributeDefinitions=[{"AttributeName": "foo", "AttributeType": "S"}],
+        )
         self.addCleanup(self.client.delete_table, TableName=table_name)
-        waiter = self.client.get_waiter('table_exists')
+        waiter = self.client.get_waiter("table_exists")
         waiter.wait(TableName=table_name)
         parsed = self.client.describe_table(TableName=table_name)
-        self.assertEqual(parsed['Table']['TableStatus'], 'ACTIVE')
+        self.assertEqual(parsed["Table"]["TableStatus"], "ACTIVE")
 
 
 class TestCanGetWaitersThroughClientInterface(unittest.TestCase):
@@ -47,7 +46,7 @@ class TestCanGetWaitersThroughClientInterface(unittest.TestCase):
         # for the service, it's email.  We want to make sure this does
         # not affect the lookup process.
         session = botocore.session.get_session()
-        client = session.create_client('ses', 'us-east-1')
+        client = session.create_client("ses", "us-east-1")
         # If we have at least one waiter in the list, we know that we have
         # actually loaded the waiters and this test has passed.
         self.assertTrue(len(client.waiter_names) > 0)
@@ -56,12 +55,11 @@ class TestCanGetWaitersThroughClientInterface(unittest.TestCase):
 class TestMatchersWithErrors(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
-        self.client = self.session.create_client(
-            'ec2', region_name='us-west-2')
+        self.client = self.session.create_client("ec2", region_name="us-west-2")
 
     def test_dont_search_on_error_responses(self):
         """Test that InstanceExists can handle a nonexistent instance."""
-        waiter = self.client.get_waiter('instance_exists')
+        waiter = self.client.get_waiter("instance_exists")
         waiter.config.max_attempts = 1
         with self.assertRaises(WaiterError):
-            waiter.wait(InstanceIds=['i-12345'])
+            waiter.wait(InstanceIds=["i-12345"])

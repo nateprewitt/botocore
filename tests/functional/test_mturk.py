@@ -17,9 +17,8 @@ from tests import BaseSessionTest
 class TestMturk(BaseSessionTest):
     def setUp(self):
         super(TestMturk, self).setUp()
-        self.region = 'us-west-2'
-        self.client = self.session.create_client(
-            'mturk', self.region)
+        self.region = "us-west-2"
+        self.client = self.session.create_client("mturk", self.region)
         self.stubber = Stubber(self.client)
         self.stubber.activate()
 
@@ -27,10 +26,10 @@ class TestMturk(BaseSessionTest):
         self.stubber.deactivate()
 
     def test_list_hits_aliased(self):
-        self.stubber.add_response('list_hits_for_qualification_type', {})
-        self.stubber.add_response('list_hits_for_qualification_type', {})
+        self.stubber.add_response("list_hits_for_qualification_type", {})
+        self.stubber.add_response("list_hits_for_qualification_type", {})
 
-        params = {'QualificationTypeId': 'foo'}
+        params = {"QualificationTypeId": "foo"}
 
         self.client.list_hi_ts_for_qualification_type(**params)
         self.client.list_hits_for_qualification_type(**params)

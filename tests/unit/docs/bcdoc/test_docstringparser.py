@@ -34,7 +34,7 @@ class TestDocStringParser(unittest.TestCase):
 
     def assert_contains_exact_lines_in_order(self, actual, expected):
         # Get each line and filter out empty lines
-        contents = actual.split(b'\n')
+        contents = actual.split(b"\n")
         contents = [line for line in contents if line and not line.isspace()]
 
         for line in expected:
@@ -45,18 +45,12 @@ class TestDocStringParser(unittest.TestCase):
     def test_nested_lists(self):
         html = "<ul><li>Wello</li><ul><li>Horld</li></ul></ul>"
         result = self.parse(html)
-        self.assert_contains_exact_lines_in_order(result, [
-            b'* Wello',
-            b'  * Horld'
-        ])
+        self.assert_contains_exact_lines_in_order(result, [b"* Wello", b"  * Horld"])
 
     def test_nested_lists_with_extra_white_space(self):
         html = "<ul> <li> Wello</li><ul> <li> Horld</li></ul></ul>"
         result = self.parse(html)
-        self.assert_contains_exact_lines_in_order(result, [
-            b'* Wello',
-            b'  * Horld'
-        ])
+        self.assert_contains_exact_lines_in_order(result, [b"* Wello", b"  * Horld"])
 
 
 class TestHTMLTree(unittest.TestCase):
@@ -67,22 +61,22 @@ class TestHTMLTree(unittest.TestCase):
         self.tree = parser.HTMLTree(self.doc)
 
     def test_add_tag(self):
-        self.tree.add_tag('foo')
+        self.tree.add_tag("foo")
         self.assertIsInstance(self.tree.current_node, parser.TagNode)
-        self.assertEqual(self.tree.current_node.tag, 'foo')
+        self.assertEqual(self.tree.current_node.tag, "foo")
 
     def test_add_unsupported_tag(self):
         del self.style.start_foo
         del self.style.end_foo
-        self.tree.add_tag('foo')
-        self.assertIn('foo', self.tree.unhandled_tags)
+        self.tree.add_tag("foo")
+        self.assertIn("foo", self.tree.unhandled_tags)
 
     def test_add_data(self):
-        self.tree.add_data('foo')
+        self.tree.add_data("foo")
         self.assertNotIsInstance(self.tree.current_node, parser.DataNode)
         node = self.tree.head.children[0]
         self.assertIsInstance(node, parser.DataNode)
-        self.assertEqual(node.data, 'foo')
+        self.assertEqual(node.data, "foo")
 
 
 class TestStemNode(unittest.TestCase):
@@ -112,7 +106,7 @@ class TestTagNode(unittest.TestCase):
         self.style = mock.Mock()
         self.doc = mock.Mock()
         self.doc.style = self.style
-        self.tag = 'foo'
+        self.tag = "foo"
         self.node = parser.TagNode(self.tag)
 
     def test_write_calls_style(self):
@@ -137,36 +131,36 @@ class TestDataNode(unittest.TestCase):
         self.doc.style = self.style
 
     def test_string_data(self):
-        node = parser.DataNode('foo')
-        self.assertEqual(node.data, 'foo')
+        node = parser.DataNode("foo")
+        self.assertEqual(node.data, "foo")
 
     def test_non_string_data_raises_error(self):
         with self.assertRaises(ValueError):
             parser.DataNode(5)
 
     def test_lstrip(self):
-        node = parser.DataNode(' foo')
+        node = parser.DataNode(" foo")
         node.lstrip()
-        self.assertEqual(node.data, 'foo')
+        self.assertEqual(node.data, "foo")
 
     def test_write(self):
-        node = parser.DataNode('foo   bar baz')
-        self.doc.translate_words.return_value = ['foo', 'bar', 'baz']
+        node = parser.DataNode("foo   bar baz")
+        self.doc.translate_words.return_value = ["foo", "bar", "baz"]
         node.write(self.doc)
-        self.doc.handle_data.assert_called_once_with('foo bar baz')
+        self.doc.handle_data.assert_called_once_with("foo bar baz")
 
     def test_write_space(self):
-        node = parser.DataNode(' ')
+        node = parser.DataNode(" ")
         node.write(self.doc)
-        self.doc.handle_data.assert_called_once_with(' ')
+        self.doc.handle_data.assert_called_once_with(" ")
         self.doc.handle_data.reset_mock()
 
-        node = parser.DataNode('              ')
+        node = parser.DataNode("              ")
         node.write(self.doc)
-        self.doc.handle_data.assert_called_once_with(' ')
+        self.doc.handle_data.assert_called_once_with(" ")
 
     def test_write_empty_string(self):
-        node = parser.DataNode('')
+        node = parser.DataNode("")
         node.write(self.doc)
         self.assertFalse(self.doc.handle_data.called)
 
@@ -176,37 +170,37 @@ class TestLineItemNode(unittest.TestCase):
         self.style = mock.Mock()
         self.doc = mock.Mock()
         self.doc.style = self.style
-        self.doc.translate_words.return_value = ['foo']
+        self.doc.translate_words.return_value = ["foo"]
         self.node = parser.LineItemNode()
 
     def test_write_strips_white_space(self):
-        self.node.add_child(parser.DataNode('  foo'))
+        self.node.add_child(parser.DataNode("  foo"))
         self.node.write(self.doc)
-        self.doc.handle_data.assert_called_once_with('foo')
+        self.doc.handle_data.assert_called_once_with("foo")
 
     def test_write_strips_nested_white_space(self):
-        self.node.add_child(parser.DataNode('  '))
-        tag_child = parser.TagNode('foo')
-        tag_child.add_child(parser.DataNode('  '))
-        tag_child_2 = parser.TagNode('foo')
-        tag_child_2.add_child(parser.DataNode(' foo'))
+        self.node.add_child(parser.DataNode("  "))
+        tag_child = parser.TagNode("foo")
+        tag_child.add_child(parser.DataNode("  "))
+        tag_child_2 = parser.TagNode("foo")
+        tag_child_2.add_child(parser.DataNode(" foo"))
         tag_child.add_child(tag_child_2)
         self.node.add_child(tag_child)
 
         self.node.write(self.doc)
-        self.doc.handle_data.assert_called_once_with('foo')
+        self.doc.handle_data.assert_called_once_with("foo")
 
     def test_write_only_strips_until_text_is_found(self):
-        self.node.add_child(parser.DataNode('  '))
-        tag_child = parser.TagNode('foo')
-        tag_child.add_child(parser.DataNode('  '))
-        tag_child_2 = parser.TagNode('foo')
-        tag_child_2.add_child(parser.DataNode(' foo'))
-        tag_child_2.add_child(parser.DataNode(' '))
+        self.node.add_child(parser.DataNode("  "))
+        tag_child = parser.TagNode("foo")
+        tag_child.add_child(parser.DataNode("  "))
+        tag_child_2 = parser.TagNode("foo")
+        tag_child_2.add_child(parser.DataNode(" foo"))
+        tag_child_2.add_child(parser.DataNode(" "))
         tag_child.add_child(tag_child_2)
         self.node.add_child(tag_child)
 
         self.node.write(self.doc)
 
-        calls = [mock.call('foo'), mock.call(' ')]
+        calls = [mock.call("foo"), mock.call(" ")]
         self.doc.handle_data.assert_has_calls(calls)

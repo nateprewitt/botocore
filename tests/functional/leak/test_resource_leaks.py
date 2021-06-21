@@ -26,12 +26,12 @@ class TestDoesNotLeakMemory(BaseClientDriverTest):
     MAX_GROWTH_BYTES = 10 * 1024 * 1024
 
     def test_create_single_client_memory_constant(self):
-        self.cmd('create_client', 's3')
-        self.cmd('free_clients')
+        self.cmd("create_client", "s3")
+        self.cmd("free_clients")
         self.record_memory()
         for _ in range(100):
-            self.cmd('create_client', 's3')
-            self.cmd('free_clients')
+            self.cmd("create_client", "s3")
+            self.cmd("free_clients")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))
@@ -53,24 +53,24 @@ class TestDoesNotLeakMemory(BaseClientDriverTest):
         #    do is verify that memory that's released back to python's
         #    allocator (but not to the OS) is at least reused in subsequent
         #    requests to create botocore clients.
-        self.cmd('create_multiple_clients', '200', 's3')
-        self.cmd('free_clients')
+        self.cmd("create_multiple_clients", "200", "s3")
+        self.cmd("free_clients")
         self.record_memory()
         # 500 clients in batches of 50.
         for _ in range(10):
-            self.cmd('create_multiple_clients', '50', 's3')
-            self.cmd('free_clients')
+            self.cmd("create_multiple_clients", "50", "s3")
+            self.cmd("free_clients")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))
 
     def test_create_single_waiter_memory_constant(self):
-        self.cmd('create_waiter', 's3', 'bucket_exists')
-        self.cmd('free_waiters')
+        self.cmd("create_waiter", "s3", "bucket_exists")
+        self.cmd("free_waiters")
         self.record_memory()
         for _ in range(100):
-            self.cmd('create_waiter', 's3', 'bucket_exists')
-            self.cmd('free_waiters')
+            self.cmd("create_waiter", "s3", "bucket_exists")
+            self.cmd("free_waiters")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))
@@ -78,25 +78,24 @@ class TestDoesNotLeakMemory(BaseClientDriverTest):
     def test_create_memory_waiters_in_loop(self):
         # See ``test_create_memory_clients_in_loop`` to understand why
         # waiters are first initialized and then freed. Same reason applies.
-        self.cmd('create_multiple_waiters', '200', 's3', 'bucket_exists')
-        self.cmd('free_waiters')
+        self.cmd("create_multiple_waiters", "200", "s3", "bucket_exists")
+        self.cmd("free_waiters")
         self.record_memory()
         # 500 waiters in batches of 50.
         for _ in range(10):
-            self.cmd(
-                'create_multiple_waiters', '50', 's3', 'bucket_exists')
-            self.cmd('free_waiters')
+            self.cmd("create_multiple_waiters", "50", "s3", "bucket_exists")
+            self.cmd("free_waiters")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))
 
     def test_create_single_paginator_memory_constant(self):
-        self.cmd('create_paginator', 's3', 'list_objects')
-        self.cmd('free_paginators')
+        self.cmd("create_paginator", "s3", "list_objects")
+        self.cmd("free_paginators")
         self.record_memory()
         for _ in range(100):
-            self.cmd('create_paginator', 's3', 'list_objects')
-            self.cmd('free_paginators')
+            self.cmd("create_paginator", "s3", "list_objects")
+            self.cmd("free_paginators")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))
@@ -104,14 +103,13 @@ class TestDoesNotLeakMemory(BaseClientDriverTest):
     def test_create_memory_paginators_in_loop(self):
         # See ``test_create_memory_clients_in_loop`` to understand why
         # paginators are first initialized and then freed. Same reason applies.
-        self.cmd('create_multiple_paginators', '200', 's3', 'list_objects')
-        self.cmd('free_paginators')
+        self.cmd("create_multiple_paginators", "200", "s3", "list_objects")
+        self.cmd("free_paginators")
         self.record_memory()
         # 500 waiters in batches of 50.
         for _ in range(10):
-            self.cmd(
-                'create_multiple_paginators', '50', 's3', 'list_objects')
-            self.cmd('free_paginators')
+            self.cmd("create_multiple_paginators", "50", "s3", "list_objects")
+            self.cmd("free_paginators")
         self.record_memory()
         start, end = self.memory_samples
         self.assertTrue((end - start) < self.MAX_GROWTH_BYTES, (end - start))

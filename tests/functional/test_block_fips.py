@@ -18,48 +18,48 @@ class TestBlockFIPS(BaseSessionTest):
     def _make_client(self, service, region):
         client = self.session.create_client(service, region)
         http_stubber = ClientHTTPStubber(client)
-        http_stubber.add_response(body=b'{}')
+        http_stubber.add_response(body=b"{}")
         return client, http_stubber
 
     def test_allows_known_fips_pseudo_regions_api_call(self):
-        region = 'fips-us-east-1'
-        client, http_stubber = self._make_client('accessanalyzer', region)
+        region = "fips-us-east-1"
+        client, http_stubber = self._make_client("accessanalyzer", region)
         with http_stubber:
             client.list_analyzers()
 
     def test_allows_known_fips_pseudo_regions_presign(self):
-        region = 'fips-us-east-1'
-        client, _ = self._make_client('accessanalyzer', region)
-        url = client.generate_presigned_url('list_analyzers', Params={})
-        self.assertIn('access-analyzer-fips', url)
+        region = "fips-us-east-1"
+        client, _ = self._make_client("accessanalyzer", region)
+        url = client.generate_presigned_url("list_analyzers", Params={})
+        self.assertIn("access-analyzer-fips", url)
 
     def test_allows_known_fips_pseudo_regions_presign_post(self):
-        region = 'fips-us-gov-west-1'
-        client, _ = self._make_client('s3', region)
-        post = client.generate_presigned_post('foo-bucket', 'foo-key')
-        self.assertIn('s3-fips', post['url'])
+        region = "fips-us-gov-west-1"
+        client, _ = self._make_client("s3", region)
+        post = client.generate_presigned_post("foo-bucket", "foo-key")
+        self.assertIn("s3-fips", post["url"])
 
     def test_allows_general_client_function(self):
-        region = 'fips-us-gov-weast-1'
-        client, _ = self._make_client('accessanalyzer', region)
-        can_paginate = client.can_paginate('list_analyzers')
+        region = "fips-us-gov-weast-1"
+        client, _ = self._make_client("accessanalyzer", region)
+        can_paginate = client.can_paginate("list_analyzers")
         self.assertTrue(can_paginate)
 
     def test_blocks_unknown_fips_pseudo_regions_api_call(self):
-        region = 'FIPS-us-weast-1'
-        client, http_stubber = self._make_client('accessanalyzer', region)
+        region = "FIPS-us-weast-1"
+        client, http_stubber = self._make_client("accessanalyzer", region)
         with http_stubber:
             with self.assertRaises(UnknownFIPSEndpointError):
                 client.list_analyzers()
 
     def test_blocks_unknown_fips_pseudo_regions_presign(self):
-        region = 'us-weast-1-fips'
-        client, _ = self._make_client('accessanalyzer', region)
+        region = "us-weast-1-fips"
+        client, _ = self._make_client("accessanalyzer", region)
         with self.assertRaises(UnknownFIPSEndpointError):
-            url = client.generate_presigned_url('list_analyzers', Params={})
+            url = client.generate_presigned_url("list_analyzers", Params={})
 
     def test_blocks_unknown_fips_pseudo_regions_presign_post(self):
-        region = 'fips-us-gov-weast-1'
-        client, _ = self._make_client('s3', region)
+        region = "fips-us-gov-weast-1"
+        client, _ = self._make_client("s3", region)
         with self.assertRaises(UnknownFIPSEndpointError):
-            post = client.generate_presigned_post('foo-bucket', 'foo-key')
+            post = client.generate_presigned_post("foo-bucket", "foo-key")

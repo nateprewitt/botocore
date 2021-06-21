@@ -30,20 +30,18 @@ def _all_operations():
 def _assert_not_shadowed(key, shape):
     if not shape:
         return
-    msg = (
-        'Found shape "%s" that shadows the botocore response key "%s"'
-    )
+    msg = 'Found shape "%s" that shadows the botocore response key "%s"'
     assert_false(key in shape.members, msg % (shape.name, key))
 
 
 def test_response_metadata_is_not_shadowed():
     for operation_model in _all_operations():
         shape = operation_model.output_shape
-        yield _assert_not_shadowed, 'ResponseMetadata', shape
+        yield _assert_not_shadowed, "ResponseMetadata", shape
 
 
 def test_exceptions_do_not_shadow():
     for service_model in _all_services():
         for shape in service_model.error_shapes:
-            yield _assert_not_shadowed, 'ResponseMetadata', shape
-            yield _assert_not_shadowed, 'Error', shape
+            yield _assert_not_shadowed, "ResponseMetadata", shape
+            yield _assert_not_shadowed, "Error", shape

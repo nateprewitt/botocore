@@ -22,62 +22,60 @@ from botocore.docs.service import ServiceDocumenter
 class TestServiceDocumenter(BaseDocsTest):
     def setUp(self):
         super(TestServiceDocumenter, self).setUp()
-        self.add_shape_to_params('Biz', 'String')
+        self.add_shape_to_params("Biz", "String")
         self.setup_client()
-        with mock.patch('botocore.session.create_loader',
-                        return_value=self.loader):
+        with mock.patch("botocore.session.create_loader", return_value=self.loader):
             session = get_session()
-            self.service_documenter = ServiceDocumenter(
-                'myservice', session)
+            self.service_documenter = ServiceDocumenter("myservice", session)
 
     def test_document_service(self):
         # Note that not everything will be included as it is just
         # a smoke test to make sure all of the main parts are inluded.
-        contents = self.service_documenter.document_service().decode('utf-8')
+        contents = self.service_documenter.document_service().decode("utf-8")
         lines = [
-            '*********',
-            'MyService',
-            '*********',
-            '.. contents:: Table of Contents',
-            '   :depth: 2',
-            '======',
-            'Client',
-            '======',
-            '.. py:class:: MyService.Client',
-            '  A low-level client representing AWS MyService',
-            '  AWS MyService Description',
-            '    client = session.create_client(\'myservice\')',
-            '  These are the available methods:',
-            '  *   :py:meth:`~MyService.Client.sample_operation`',
-            '  .. py:method:: sample_operation(**kwargs)',
-            '    **Examples** ',
-            '    Sample Description.',
-            '    ::',
-            '      response = client.sample_operation(',
-            '=================',
-            'Client Exceptions',
-            '=================',
-            'Client exceptions are available',
-            '==========',
-            'Paginators',
-            '==========',
-            '.. py:class:: MyService.Paginator.SampleOperation',
-            '  .. py:method:: paginate(**kwargs)',
-            '=======',
-            'Waiters',
-            '=======',
-            '.. py:class:: MyService.Waiter.SampleOperationComplete',
-            '  .. py:method:: wait(**kwargs)'
+            "*********",
+            "MyService",
+            "*********",
+            ".. contents:: Table of Contents",
+            "   :depth: 2",
+            "======",
+            "Client",
+            "======",
+            ".. py:class:: MyService.Client",
+            "  A low-level client representing AWS MyService",
+            "  AWS MyService Description",
+            "    client = session.create_client('myservice')",
+            "  These are the available methods:",
+            "  *   :py:meth:`~MyService.Client.sample_operation`",
+            "  .. py:method:: sample_operation(**kwargs)",
+            "    **Examples** ",
+            "    Sample Description.",
+            "    ::",
+            "      response = client.sample_operation(",
+            "=================",
+            "Client Exceptions",
+            "=================",
+            "Client exceptions are available",
+            "==========",
+            "Paginators",
+            "==========",
+            ".. py:class:: MyService.Paginator.SampleOperation",
+            "  .. py:method:: paginate(**kwargs)",
+            "=======",
+            "Waiters",
+            "=======",
+            ".. py:class:: MyService.Waiter.SampleOperationComplete",
+            "  .. py:method:: wait(**kwargs)",
         ]
         for line in lines:
             self.assertIn(line, contents)
 
     def test_document_service_no_paginator(self):
         os.remove(self.paginator_model_file)
-        contents = self.service_documenter.document_service().decode('utf-8')
-        self.assertNotIn('Paginators', contents)
+        contents = self.service_documenter.document_service().decode("utf-8")
+        self.assertNotIn("Paginators", contents)
 
     def test_document_service_no_waiter(self):
         os.remove(self.waiter_model_file)
-        contents = self.service_documenter.document_service().decode('utf-8')
-        self.assertNotIn('Waiters', contents)
+        contents = self.service_documenter.document_service().decode("utf-8")
+        self.assertNotIn("Waiters", contents)

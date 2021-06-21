@@ -16,13 +16,13 @@ from tests.functional.docs import BaseDocsFunctionalTest
 class TestGlacierDocs(BaseDocsFunctionalTest):
     def test_account_id(self):
         self.assert_is_documented_as_autopopulated_param(
-            service_name='glacier',
-            method_name='abort_multipart_upload',
-            param_name='accountId',
-            doc_string='Note: this parameter is set to "-"')
+            service_name="glacier",
+            method_name="abort_multipart_upload",
+            param_name="accountId",
+            doc_string='Note: this parameter is set to "-"',
+        )
 
     def test_checksum(self):
         self.assert_is_documented_as_autopopulated_param(
-            service_name='glacier',
-            method_name='upload_archive',
-            param_name='checksum')
+            service_name="glacier", method_name="upload_archive", param_name="checksum"
+        )

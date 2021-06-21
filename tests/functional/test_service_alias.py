@@ -22,9 +22,9 @@ def test_can_use_service_alias():
 
 def _instantiates_the_same_client(session, service_name, service_alias):
     client_kwargs = {
-        'region_name': 'us-east-1',
-        'aws_access_key_id': 'foo',
-        'aws_secret_access_key': 'bar',
+        "region_name": "us-east-1",
+        "aws_access_key_id": "foo",
+        "aws_secret_access_key": "bar",
     }
     original_client = session.create_client(service_name, **client_kwargs)
     aliased_client = session.create_client(service_alias, **client_kwargs)

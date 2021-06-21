@@ -15,28 +15,30 @@ from tests import unittest
 import botocore.session
 from botocore.exceptions import ClientError
 
+
 class TestSTS(unittest.TestCase):
     def setUp(self):
         self.session = botocore.session.get_session()
         credentials = self.session.get_credentials()
         if credentials.token is not None:
-            self.skipTest('STS tests require long-term credentials')
+            self.skipTest("STS tests require long-term credentials")
 
     def test_regionalized_endpoints(self):
-        sts = self.session.create_client('sts', region_name='ap-southeast-1')
+        sts = self.session.create_client("sts", region_name="ap-southeast-1")
         response = sts.get_session_token()
         # Do not want to be revealing any temporary keys if the assertion fails
-        self.assertIn('Credentials', response.keys())
+        self.assertIn("Credentials", response.keys())
 
         # Since we have to activate STS regionalization, we will test
         # that you can send an STS request to a regionalized endpoint
         # by making a call with the explicitly wrong region name
         sts = self.session.create_client(
-            'sts', region_name='ap-southeast-1',
-            endpoint_url='https://sts.us-west-2.amazonaws.com')
-        self.assertEqual(sts.meta.region_name, 'ap-southeast-1')
-        self.assertEqual(sts.meta.endpoint_url,
-                         'https://sts.us-west-2.amazonaws.com')
+            "sts",
+            region_name="ap-southeast-1",
+            endpoint_url="https://sts.us-west-2.amazonaws.com",
+        )
+        self.assertEqual(sts.meta.region_name, "ap-southeast-1")
+        self.assertEqual(sts.meta.endpoint_url, "https://sts.us-west-2.amazonaws.com")
         # Signing error will be thrown with the incorrect region name included.
-        with self.assertRaisesRegexp(ClientError, 'ap-southeast-1') as e:
+        with self.assertRaisesRegexp(ClientError, "ap-southeast-1") as e:
             sts.get_session_token()

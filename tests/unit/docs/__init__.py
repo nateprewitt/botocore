@@ -30,16 +30,12 @@ from botocore.loaders import Loader
 class BaseDocsTest(unittest.TestCase):
     def setUp(self):
         self.root_dir = tempfile.mkdtemp()
-        self.version_dirs = os.path.join(
-            self.root_dir, 'myservice', '2014-01-01')
+        self.version_dirs = os.path.join(self.root_dir, "myservice", "2014-01-01")
         os.makedirs(self.version_dirs)
-        self.model_file = os.path.join(self.version_dirs, 'service-2.json')
-        self.waiter_model_file = os.path.join(
-            self.version_dirs, 'waiters-2.json')
-        self.paginator_model_file = os.path.join(
-            self.version_dirs, 'paginators-1.json')
-        self.example_model_file = os.path.join(
-            self.version_dirs, 'examples-1.json')
+        self.model_file = os.path.join(self.version_dirs, "service-2.json")
+        self.waiter_model_file = os.path.join(self.version_dirs, "waiters-2.json")
+        self.paginator_model_file = os.path.join(self.version_dirs, "paginators-1.json")
+        self.example_model_file = os.path.join(self.version_dirs, "examples-1.json")
 
         self.json_model = {}
         self.nested_json_model = {}
@@ -47,74 +43,74 @@ class BaseDocsTest(unittest.TestCase):
         self.build_models()
         self.events = HierarchicalEmitter()
         self.setup_client()
-        self.doc_name = 'MyDoc'
-        self.doc_structure = DocumentStructure(self.doc_name, target='html')
+        self.doc_name = "MyDoc"
+        self.doc_structure = DocumentStructure(self.doc_name, target="html")
 
     def tearDown(self):
         shutil.rmtree(self.root_dir)
 
     def setup_client(self):
-        with open(self.example_model_file, 'w') as f:
+        with open(self.example_model_file, "w") as f:
             json.dump(self.example_json_model, f)
 
-        with open(self.waiter_model_file, 'w') as f:
+        with open(self.waiter_model_file, "w") as f:
             json.dump(self.waiter_json_model, f)
 
-        with open(self.paginator_model_file, 'w') as f:
+        with open(self.paginator_model_file, "w") as f:
             json.dump(self.paginator_json_model, f)
 
-        with open(self.model_file, 'w') as f:
+        with open(self.model_file, "w") as f:
             json.dump(self.json_model, f)
 
         self.loader = Loader(extra_search_paths=[self.root_dir])
 
         endpoint_resolver = mock.Mock()
         endpoint_resolver.construct_endpoint.return_value = {
-            'hostname': 'foo.us-east-1',
-            'partition': 'aws',
-            'endpointName': 'us-east-1',
-            'signatureVersions': ['v4']
+            "hostname": "foo.us-east-1",
+            "partition": "aws",
+            "endpointName": "us-east-1",
+            "signatureVersions": ["v4"],
         }
 
         self.creator = ClientCreator(
-            loader=self.loader, endpoint_resolver=endpoint_resolver,
-            user_agent='user-agent', event_emitter=self.events,
+            loader=self.loader,
+            endpoint_resolver=endpoint_resolver,
+            user_agent="user-agent",
+            event_emitter=self.events,
             retry_handler_factory=mock.Mock(),
             retry_config_translator=mock.Mock(),
             exceptions_factory=mock.Mock(),
-            config_store=ConfigValueStore()
+            config_store=ConfigValueStore(),
         )
 
-        self.client = self.creator.create_client('myservice', 'us-east-1')
+        self.client = self.creator.create_client("myservice", "us-east-1")
 
     def _setup_models(self):
         self.json_model = {
-            'metadata': {
-                'apiVersion': '2014-01-01',
-                'endpointPrefix': 'myservice',
-                'signatureVersion': 'v4',
-                'serviceFullName': 'AWS MyService',
-                'uid': 'myservice-2014-01-01',
-                'protocol': 'query',
-                'serviceId': 'MyService',
+            "metadata": {
+                "apiVersion": "2014-01-01",
+                "endpointPrefix": "myservice",
+                "signatureVersion": "v4",
+                "serviceFullName": "AWS MyService",
+                "uid": "myservice-2014-01-01",
+                "protocol": "query",
+                "serviceId": "MyService",
             },
-            'operations': {
-                'SampleOperation': {
-                    'name': 'SampleOperation',
-                    'input': {'shape': 'SampleOperationInputOutput'},
-                    'output': {'shape': 'SampleOperationInputOutput'}
+            "operations": {
+                "SampleOperation": {
+                    "name": "SampleOperation",
+                    "input": {"shape": "SampleOperationInputOutput"},
+                    "output": {"shape": "SampleOperationInputOutput"},
                 }
             },
-            'shapes': {
-                'SampleOperationInputOutput': {
-                    'type': 'structure',
-                    'members': OrderedDict()
+            "shapes": {
+                "SampleOperationInputOutput": {
+                    "type": "structure",
+                    "members": OrderedDict(),
                 },
-                'String': {
-                    'type': 'string'
-                }
+                "String": {"type": "string"},
             },
-            'documentation':'AWS MyService Description'
+            "documentation": "AWS MyService Description",
         }
 
         self.waiter_json_model = {
@@ -125,17 +121,21 @@ class BaseDocsTest(unittest.TestCase):
                     "operation": "SampleOperation",
                     "maxAttempts": 40,
                     "acceptors": [
-                        {"expected": "complete",
-                         "matcher": "pathAll",
-                         "state": "success",
-                         "argument": "Biz"},
-                        {"expected": "failed",
-                         "matcher": "pathAny",
-                         "state": "failure",
-                         "argument": "Biz"}
-                    ]
+                        {
+                            "expected": "complete",
+                            "matcher": "pathAll",
+                            "state": "success",
+                            "argument": "Biz",
+                        },
+                        {
+                            "expected": "failed",
+                            "matcher": "pathAny",
+                            "state": "failure",
+                            "argument": "Biz",
+                        },
+                    ],
                 }
-            }
+            },
         }
 
         self.paginator_json_model = {
@@ -144,7 +144,7 @@ class BaseDocsTest(unittest.TestCase):
                     "input_token": "NextResult",
                     "output_token": "NextResult",
                     "limit_key": "MaxResults",
-                    "result_key": "Biz"
+                    "result_key": "Biz",
                 }
             }
         }
@@ -152,68 +152,64 @@ class BaseDocsTest(unittest.TestCase):
         self.example_json_model = {
             "version": 1,
             "examples": {
-                "SampleOperation": [{
-                    "id": "sample-id",
-                    "title": "sample-title",
-                    "description": "Sample Description.",
-                    "input": OrderedDict([
-                        ("Biz", "foo"),
-                    ]),
-                    "comments": {
-                        "input": {
-                            "Biz": "bar"
-                        },
+                "SampleOperation": [
+                    {
+                        "id": "sample-id",
+                        "title": "sample-title",
+                        "description": "Sample Description.",
+                        "input": OrderedDict([("Biz", "foo"),]),
+                        "comments": {"input": {"Biz": "bar"},},
                     }
-                }]
-            }
+                ]
+            },
         }
 
     def build_models(self):
         self.service_model = ServiceModel(self.json_model)
         self.operation_model = OperationModel(
-            self.json_model['operations']['SampleOperation'],
-            self.service_model
+            self.json_model["operations"]["SampleOperation"], self.service_model
         )
 
     def add_shape(self, shape):
         shape_name = list(shape.keys())[0]
-        self.json_model['shapes'][shape_name] = shape[shape_name]
+        self.json_model["shapes"][shape_name] = shape[shape_name]
 
-    def add_shape_to_params(self, param_name, shape_name, documentation=None,
-                            is_required=False):
-        params_shape = self.json_model['shapes']['SampleOperationInputOutput']
-        member = {'shape': shape_name}
+    def add_shape_to_params(
+        self, param_name, shape_name, documentation=None, is_required=False
+    ):
+        params_shape = self.json_model["shapes"]["SampleOperationInputOutput"]
+        member = {"shape": shape_name}
         if documentation is not None:
-            member['documentation'] = documentation
-        params_shape['members'][param_name] = member
+            member["documentation"] = documentation
+        params_shape["members"][param_name] = member
 
         if is_required:
-            required_list = params_shape.get('required', [])
+            required_list = params_shape.get("required", [])
             required_list.append(param_name)
-            params_shape['required'] = required_list
+            params_shape["required"] = required_list
 
     def add_shape_to_errors(self, shape_name):
-        operation = self.json_model['operations']['SampleOperation']
-        errors = operation.get('errors', [])
-        errors.append({'shape': shape_name})
-        operation['errors'] = errors
+        operation = self.json_model["operations"]["SampleOperation"]
+        errors = operation.get("errors", [])
+        errors.append({"shape": shape_name})
+        operation["errors"] = errors
 
     def assert_contains_line(self, line):
-        contents = self.doc_structure.flush_structure().decode('utf-8')
+        contents = self.doc_structure.flush_structure().decode("utf-8")
         self.assertIn(line, contents)
 
     def assert_contains_lines_in_order(self, lines):
-        contents = self.doc_structure.flush_structure().decode('utf-8')
+        contents = self.doc_structure.flush_structure().decode("utf-8")
         for line in lines:
             self.assertIn(line, contents)
             beginning = contents.find(line)
-            contents = contents[(beginning + len(line)):]
+            contents = contents[(beginning + len(line)) :]
 
     def assert_not_contains_line(self, line):
-        contents = self.doc_structure.flush_structure().decode('utf-8')
+        contents = self.doc_structure.flush_structure().decode("utf-8")
         self.assertNotIn(line, contents)
 
     def assert_not_contains_lines(self, lines):
-        contents = self.doc_structure.flush_structure().decode('utf-8')
+        contents = self.doc_structure.flush_structure().decode("utf-8")
         for line in lines:
             self.assertNotIn(line, contents)

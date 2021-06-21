@@ -15,8 +15,11 @@ import tempfile
 import shutil
 from tests import unittest, mock
 
-from botocore.exceptions import (ConnectionClosedError, HTTPClientError,
-                                InvalidIMDSEndpointError)
+from botocore.exceptions import (
+    ConnectionClosedError,
+    HTTPClientError,
+    InvalidIMDSEndpointError,
+)
 from botocore.utils import FileWebIdentityTokenLoader, InstanceMetadataFetcher
 from urllib3.exceptions import LocationParseError
 
@@ -25,8 +28,8 @@ class TestFileWebIdentityTokenLoader(unittest.TestCase):
     def setUp(self):
         super(TestFileWebIdentityTokenLoader, self).setUp()
         self.tempdir = tempfile.mkdtemp()
-        self.token = 'totally.a.token'
-        self.token_file = os.path.join(self.tempdir, 'token.jwt')
+        self.token = "totally.a.token"
+        self.token_file = os.path.join(self.tempdir, "token.jwt")
         self.write_token(self.token)
 
     def tearDown(self):
@@ -36,7 +39,7 @@ class TestFileWebIdentityTokenLoader(unittest.TestCase):
     def write_token(self, token, path=None):
         if path is None:
             path = self.token_file
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             f.write(token)
 
     def test_can_load_token(self):
@@ -47,7 +50,7 @@ class TestFileWebIdentityTokenLoader(unittest.TestCase):
 
 class TestInstanceMetadataFetcher(unittest.TestCase):
     def test_catch_retryable_http_errors(self):
-        with mock.patch('botocore.httpsession.URLLib3Session.send') as send_mock:
+        with mock.patch("botocore.httpsession.URLLib3Session.send") as send_mock:
             fetcher = InstanceMetadataFetcher()
             send_mock.side_effect = ConnectionClosedError(endpoint_url="foo")
             creds = fetcher.retrieve_iam_role_credentials()
@@ -57,7 +60,7 @@ class TestInstanceMetadataFetcher(unittest.TestCase):
         self.assertEquals(creds, {})
 
     def test_catch_invalid_imds_error(self):
-        with mock.patch('botocore.httpsession.URLLib3Session.send') as send_mock:
+        with mock.patch("botocore.httpsession.URLLib3Session.send") as send_mock:
             fetcher = InstanceMetadataFetcher()
             e = LocationParseError(location="foo")
             send_mock.side_effect = HTTPClientError(error=e)

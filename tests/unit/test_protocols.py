@@ -60,10 +60,20 @@ from botocore.awsrequest import HeadersDict
 from botocore.compat import json, OrderedDict, urlsplit
 from botocore.eventstream import EventStream
 from botocore.model import ServiceModel, OperationModel
-from botocore.serialize import EC2Serializer, QuerySerializer, \
-        JSONSerializer, RestJSONSerializer, RestXMLSerializer
-from botocore.parsers import QueryParser, JSONParser, \
-        RestJSONParser, RestXMLParser, EC2QueryParser
+from botocore.serialize import (
+    EC2Serializer,
+    QuerySerializer,
+    JSONSerializer,
+    RestJSONSerializer,
+    RestXMLSerializer,
+)
+from botocore.parsers import (
+    QueryParser,
+    JSONParser,
+    RestJSONParser,
+    RestXMLParser,
+    EC2QueryParser,
+)
 from botocore.utils import parse_timestamp, percent_encode_sequence
 from botocore.awsrequest import prepare_request_dict
 from calendar import timegm
@@ -71,78 +81,76 @@ from botocore.model import NoShapeFoundError
 
 from nose.tools import assert_equal as _assert_equal
 
-TEST_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'protocols')
+TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "protocols")
 NOT_SPECIFIED = object()
 PROTOCOL_SERIALIZERS = {
-    'ec2': EC2Serializer,
-    'query': QuerySerializer,
-    'json': JSONSerializer,
-    'rest-json': RestJSONSerializer,
-    'rest-xml': RestXMLSerializer,
+    "ec2": EC2Serializer,
+    "query": QuerySerializer,
+    "json": JSONSerializer,
+    "rest-json": RestJSONSerializer,
+    "rest-xml": RestXMLSerializer,
 }
 PROTOCOL_PARSERS = {
-    'ec2': EC2QueryParser,
-    'query': QueryParser,
-    'json': JSONParser,
-    'rest-json': RestJSONParser,
-    'rest-xml': RestXMLParser,
+    "ec2": EC2QueryParser,
+    "query": QueryParser,
+    "json": JSONParser,
+    "rest-json": RestJSONParser,
+    "rest-xml": RestXMLParser,
 }
-PROTOCOL_TEST_BLACKLIST = [
-    'Idempotency token auto fill'
-]
+PROTOCOL_TEST_BLACKLIST = ["Idempotency token auto fill"]
 
 
 def test_compliance():
     for full_path in _walk_files():
-        if full_path.endswith('.json'):
+        if full_path.endswith(".json"):
             for model, case, basename in _load_cases(full_path):
-                if model.get('description') in PROTOCOL_TEST_BLACKLIST:
+                if model.get("description") in PROTOCOL_TEST_BLACKLIST:
                     continue
-                if 'params' in case:
+                if "params" in case:
                     yield _test_input, model, case, basename
-                elif 'response' in case:
+                elif "response" in case:
                     yield _test_output, model, case, basename
 
 
 def _test_input(json_description, case, basename):
     service_description = copy.deepcopy(json_description)
-    service_description['operations'] = {
-        case.get('name', 'OperationName'): case,
+    service_description["operations"] = {
+        case.get("name", "OperationName"): case,
     }
     model = ServiceModel(service_description)
-    protocol_type = model.metadata['protocol']
+    protocol_type = model.metadata["protocol"]
     try:
         protocol_serializer = PROTOCOL_SERIALIZERS[protocol_type]
     except KeyError:
         raise RuntimeError("Unknown protocol: %s" % protocol_type)
     serializer = protocol_serializer()
     serializer.MAP_TYPE = OrderedDict
-    operation_model = OperationModel(case['given'], model)
-    request = serializer.serialize_to_request(case['params'], operation_model)
+    operation_model = OperationModel(case["given"], model)
+    request = serializer.serialize_to_request(case["params"], operation_model)
     _serialize_request_description(request)
-    client_endpoint = service_description.get('clientEndpoint')
+    client_endpoint = service_description.get("clientEndpoint")
     try:
-        _assert_request_body_is_bytes(request['body'])
-        _assert_requests_equal(request, case['serialized'])
-        _assert_endpoints_equal(request, case['serialized'], client_endpoint)
+        _assert_request_body_is_bytes(request["body"])
+        _assert_requests_equal(request, case["serialized"])
+        _assert_endpoints_equal(request, case["serialized"], client_endpoint)
     except AssertionError as e:
         _input_failure_message(protocol_type, case, request, e)
 
 
 def _assert_request_body_is_bytes(body):
     if not isinstance(body, bytes):
-        raise AssertionError("Expected body to be serialized as type "
-                             "bytes(), instead got: %s" % type(body))
+        raise AssertionError(
+            "Expected body to be serialized as type "
+            "bytes(), instead got: %s" % type(body)
+        )
 
 
 def _assert_endpoints_equal(actual, expected, endpoint):
-    if 'host' not in expected:
+    if "host" not in expected:
         return
     prepare_request_dict(actual, endpoint)
-    actual_host = urlsplit(actual['url']).netloc
-    assert_equal(actual_host, expected['host'], 'Host')
+    actual_host = urlsplit(actual["url"]).netloc
+    assert_equal(actual_host, expected["host"], "Host")
 
 
 class MockRawResponse(object):
@@ -155,63 +163,71 @@ class MockRawResponse(object):
 
 def _test_output(json_description, case, basename):
     service_description = copy.deepcopy(json_description)
-    operation_name = case.get('name', 'OperationName')
-    service_description['operations'] = {
+    operation_name = case.get("name", "OperationName")
+    service_description["operations"] = {
         operation_name: case,
     }
-    case['response']['context'] = {'operation_name': operation_name}
+    case["response"]["context"] = {"operation_name": operation_name}
     try:
         model = ServiceModel(service_description)
-        operation_model = OperationModel(case['given'], model)
-        parser = PROTOCOL_PARSERS[model.metadata['protocol']](
-            timestamp_parser=_compliance_timestamp_parser)
+        operation_model = OperationModel(case["given"], model)
+        parser = PROTOCOL_PARSERS[model.metadata["protocol"]](
+            timestamp_parser=_compliance_timestamp_parser
+        )
         # We load the json as utf-8, but the response parser is at the
         # botocore boundary, so it expects to work with bytes.
-        body_bytes = case['response']['body'].encode('utf-8')
-        case['response']['body'] = body_bytes
+        body_bytes = case["response"]["body"].encode("utf-8")
+        case["response"]["body"] = body_bytes
         # We need the headers to be case insensitive
-        headers = HeadersDict(case['response']['headers'])
-        case['response']['headers'] = headers
+        headers = HeadersDict(case["response"]["headers"])
+        case["response"]["headers"] = headers
         # If this is an event stream fake the raw streamed response
         if operation_model.has_event_stream_output:
-            case['response']['body'] = MockRawResponse(body_bytes)
-        if 'error' in case:
+            case["response"]["body"] = MockRawResponse(body_bytes)
+        if "error" in case:
             output_shape = operation_model.output_shape
-            parsed = parser.parse(case['response'], output_shape)
+            parsed = parser.parse(case["response"], output_shape)
             try:
-                error_shape = model.shape_for(parsed['Error']['Code'])
+                error_shape = model.shape_for(parsed["Error"]["Code"])
             except NoShapeFoundError:
                 error_shape = None
             if error_shape is not None:
-                error_parse = parser.parse(case['response'], error_shape)
+                error_parse = parser.parse(case["response"], error_shape)
                 parsed.update(error_parse)
         else:
             output_shape = operation_model.output_shape
-            parsed = parser.parse(case['response'], output_shape)
+            parsed = parser.parse(case["response"], output_shape)
         parsed = _fixup_parsed_result(parsed)
     except Exception as e:
         msg = (
             "\nFailed to run test  : %s\n"
             "Protocol            : %s\n"
-            "Description         : %s (%s:%s)\n" % (
-                e, model.metadata['protocol'],
-                case['description'], case['suite_id'], case['test_id']))
+            "Description         : %s (%s:%s)\n"
+            % (
+                e,
+                model.metadata["protocol"],
+                case["description"],
+                case["suite_id"],
+                case["test_id"],
+            )
+        )
         raise AssertionError(msg)
     try:
-        if 'error' in case:
+        if "error" in case:
             expected_result = {
-                'Error': {
-                    'Code': case.get('errorCode', ''),
-                    'Message': case.get('errorMessage', ''),
+                "Error": {
+                    "Code": case.get("errorCode", ""),
+                    "Message": case.get("errorMessage", ""),
                 }
             }
-            expected_result.update(case['error'])
+            expected_result.update(case["error"])
         else:
-            expected_result = case['result']
+            expected_result = case["result"]
         assert_equal(parsed, expected_result, "Body")
     except Exception as e:
-        _output_failure_message(model.metadata['protocol'],
-                                case, parsed, expected_result, e)
+        _output_failure_message(
+            model.metadata["protocol"], case, parsed, expected_result, e
+        )
 
 
 def _fixup_parsed_result(parsed):
@@ -223,8 +239,8 @@ def _fixup_parsed_result(parsed):
 
     # 1. RequestMetadata.  We parse this onto the returned dict, but compliance
     # tests don't have any specs for how to deal with request metadata.
-    if 'ResponseMetadata' in parsed:
-        del parsed['ResponseMetadata']
+    if "ResponseMetadata" in parsed:
+        del parsed["ResponseMetadata"]
     # 2. Binary blob types.  In the protocol test, blob types, when base64
     # decoded, always decode to something that can be expressed via utf-8.
     # This is not always the case.  In python3, the blob type is designed to
@@ -241,11 +257,11 @@ def _fixup_parsed_result(parsed):
     # which causes some modeled fields in the response to be placed under the
     # error key. We don't have enough information in the test suite to assert
     # these properly, and they probably shouldn't be there in the first place.
-    if 'Error' in parsed:
-        error_keys = list(parsed['Error'].keys())
+    if "Error" in parsed:
+        error_keys = list(parsed["Error"].keys())
         for key in error_keys:
-            if key not in ['Code', 'Message']:
-                del parsed['Error'][key]
+            if key not in ["Code", "Message"]:
+                del parsed["Error"][key]
     return parsed
 
 
@@ -256,7 +272,7 @@ def _convert_bytes_to_str(parsed):
             new_dict[key] = _convert_bytes_to_str(value)
         return new_dict
     elif isinstance(parsed, bytes):
-        return parsed.decode('utf-8')
+        return parsed.decode("utf-8")
     elif isinstance(parsed, list):
         new_list = []
         for item in parsed:
@@ -274,10 +290,7 @@ def _compliance_timestamp_parser(value):
     return int(timegm(datetime.timetuple()))
 
 
-def _output_failure_message(
-    protocol_type, case, actual_parsed,
-    expected_result, error
-):
+def _output_failure_message(protocol_type, case, actual_parsed, expected_result, error):
     j = _try_json_dump
     error_message = (
         "\nDescription           : %s (%s:%s)\n"
@@ -286,11 +299,19 @@ def _output_failure_message(
         "Response              : %s\n"
         "Expected serialization: %s\n"
         "Actual serialization  : %s\n"
-        "Assertion message     : %s\n" % (
-            case['description'], case['suite_id'],
-            case['test_id'], protocol_type,
-            j(case['given']), j(case['response']),
-            j(expected_result), j(actual_parsed), error))
+        "Assertion message     : %s\n"
+        % (
+            case["description"],
+            case["suite_id"],
+            case["test_id"],
+            protocol_type,
+            j(case["given"]),
+            j(case["response"]),
+            j(expected_result),
+            j(actual_parsed),
+            error,
+        )
+    )
     raise AssertionError(error_message)
 
 
@@ -303,11 +324,19 @@ def _input_failure_message(protocol_type, case, actual_request, error):
         "Params                : %s\n"
         "Expected serialization: %s\n"
         "Actual serialization  : %s\n"
-        "Assertion message     : %s\n" % (
-            case['description'], case['suite_id'],
-            case['test_id'], protocol_type,
-            j(case['given']), j(case['params']),
-            j(case['serialized']), j(actual_request), error))
+        "Assertion message     : %s\n"
+        % (
+            case["description"],
+            case["suite_id"],
+            case["test_id"],
+            protocol_type,
+            j(case["given"]),
+            j(case["params"]),
+            j(case["serialized"]),
+            j(actual_request),
+            error,
+        )
+    )
     raise AssertionError(error_message)
 
 
@@ -328,46 +357,45 @@ def assert_equal(first, second, prefix):
             better = "%s (actual != expected)\n%s !=\n%s" % (
                 prefix,
                 json.dumps(first, indent=2),
-                json.dumps(second, indent=2))
+                json.dumps(second, indent=2),
+            )
         except (ValueError, TypeError):
-            better = "%s (actual != expected)\n%s !=\n%s" % (
-                prefix, first, second)
+            better = "%s (actual != expected)\n%s !=\n%s" % (prefix, first, second)
         raise AssertionError(better)
 
 
 def _serialize_request_description(request_dict):
-    if isinstance(request_dict.get('body'), dict):
+    if isinstance(request_dict.get("body"), dict):
         # urlencode the request body.
-        encoded = percent_encode_sequence(request_dict['body']).encode('utf-8')
-        request_dict['body'] = encoded
-    if isinstance(request_dict.get('query_string'), dict):
-        encoded = percent_encode_sequence(request_dict.get('query_string'))
+        encoded = percent_encode_sequence(request_dict["body"]).encode("utf-8")
+        request_dict["body"] = encoded
+    if isinstance(request_dict.get("query_string"), dict):
+        encoded = percent_encode_sequence(request_dict.get("query_string"))
         if encoded:
             # 'requests' automatically handle this, but we in the
             # test runner we need to handle the case where the url_path
             # already has query params.
-            if '?' not in request_dict['url_path']:
-                request_dict['url_path'] += '?%s' % encoded
+            if "?" not in request_dict["url_path"]:
+                request_dict["url_path"] += "?%s" % encoded
             else:
-                request_dict['url_path'] += '&%s' % encoded
+                request_dict["url_path"] += "&%s" % encoded
 
 
 def _assert_requests_equal(actual, expected):
-    assert_equal(actual['body'], expected.get('body', '').encode('utf-8'),
-                 'Body value')
-    actual_headers = dict(actual['headers'])
-    expected_headers = expected.get('headers', {})
+    assert_equal(actual["body"], expected.get("body", "").encode("utf-8"), "Body value")
+    actual_headers = dict(actual["headers"])
+    expected_headers = expected.get("headers", {})
     assert_equal(actual_headers, expected_headers, "Header values")
-    assert_equal(actual['url_path'], expected.get('uri', ''), "URI")
-    if 'method' in expected:
-        assert_equal(actual['method'], expected['method'], "Method")
+    assert_equal(actual["url_path"], expected.get("uri", ""), "URI")
+    if "method" in expected:
+        assert_equal(actual["method"], expected["method"], "Method")
 
 
 def _walk_files():
     # Check for a shortcut when running the tests interactively.
     # If a BOTOCORE_TEST env var is defined, that file is used as the
     # only test to run.  Useful when doing feature development.
-    single_file = os.environ.get('BOTOCORE_TEST')
+    single_file = os.environ.get("BOTOCORE_TEST")
     if single_file is not None:
         yield os.path.abspath(single_file)
     else:
@@ -387,23 +415,23 @@ def _load_cases(full_path):
     for i, test_data in enumerate(all_test_data):
         if suite_id is not None and i != suite_id:
             continue
-        cases = test_data.pop('cases')
-        description = test_data['description']
+        cases = test_data.pop("cases")
+        description = test_data["description"]
         for j, case in enumerate(cases):
             if test_id is not None and j != test_id:
                 continue
-            case['description'] = description
-            case['suite_id'] = i
-            case['test_id'] = j
+            case["description"] = description
+            case["suite_id"] = i
+            case["test_id"] = j
             yield (test_data, case, basename)
 
 
 def _get_suite_test_id():
-    if 'BOTOCORE_TEST_ID' not in os.environ:
+    if "BOTOCORE_TEST_ID" not in os.environ:
         return None, None
     test_id = None
     suite_id = None
-    split = os.environ['BOTOCORE_TEST_ID'].split(':')
+    split = os.environ["BOTOCORE_TEST_ID"].split(":")
     try:
         if len(split) == 2:
             suite_id, test_id = int(split[0]), int(split[1])
@@ -411,7 +439,9 @@ def _get_suite_test_id():
             suite_id = int(split([0]))
     except TypeError:
         # Same exception, just give a better error message.
-        raise TypeError("Invalid format for BOTOCORE_TEST_ID, should be "
-                        "suite_id[:test_id], and both values should be "
-                        "integers.")
+        raise TypeError(
+            "Invalid format for BOTOCORE_TEST_ID, should be "
+            "suite_id[:test_id], and both values should be "
+            "integers."
+        )
     return suite_id, test_id
