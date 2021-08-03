@@ -1572,7 +1572,6 @@ class S3EndpointSetter(object):
             self.update_endpoint_to_s3_object_lambda
         )
 
-
     def update_endpoint_to_s3_object_lambda(self, params, context, **kwargs):
         if self._use_accelerate_endpoint:
             raise UnsupportedS3ConfigurationError(
@@ -1595,7 +1594,6 @@ class S3EndpointSetter(object):
         )
 
         params['url'] = _get_new_endpoint(params['url'], new_endpoint, False)
-
 
     def set_endpoint(self, request, **kwargs):
         if self._use_accesspoint_endpoint(request):

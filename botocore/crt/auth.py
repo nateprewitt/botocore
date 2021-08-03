@@ -11,7 +11,7 @@ from botocore.exceptions import NoCredentialsError
 
 class CrtSigV4Auth(BaseSigner):
     REQUIRES_REGION = True
-    _PRESIGNED_HEADERS_BLACKLIST = [
+    _PRESIGNED_HEADERS_BLOCKLIST = [
         'Authorization',
         'X-Amz-Date',
         'X-Amz-Content-SHA256',
@@ -119,7 +119,7 @@ class CrtSigV4Auth(BaseSigner):
     def _modify_request_before_signing(self, request):
         # This could be a retry. Make sure the previous
         # authorization headers are removed first.
-        for h in self._PRESIGNED_HEADERS_BLACKLIST:
+        for h in self._PRESIGNED_HEADERS_BLOCKLIST:
             if h in request.headers:
                 del request.headers[h]
         # If necessary, add the host header
@@ -194,7 +194,7 @@ class CrtS3SigV4Auth(CrtSigV4Auth):
 
 class CrtSigV4AsymAuth(BaseSigner):
     REQUIRES_REGION = True
-    _PRESIGNED_HEADERS_BLACKLIST = [
+    _PRESIGNED_HEADERS_BLOCKLIST = [
         'Authorization',
         'X-Amz-Date',
         'X-Amz-Content-SHA256',
@@ -302,7 +302,7 @@ class CrtSigV4AsymAuth(BaseSigner):
     def _modify_request_before_signing(self, request):
         # This could be a retry. Make sure the previous
         # authorization headers are removed first.
-        for h in self._PRESIGNED_HEADERS_BLACKLIST:
+        for h in self._PRESIGNED_HEADERS_BLOCKLIST:
             if h in request.headers:
                 del request.headers[h]
         # If necessary, add the host header
