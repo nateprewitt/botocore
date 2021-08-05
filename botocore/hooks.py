@@ -387,6 +387,9 @@ class EventAliaser(BaseEventHooks):
             aliased_event_name, handler, unique_id, unique_id_uses_count
         )
 
+    from functools import lru_cache
+
+    @lru_cache(1024)
     def _alias_event_name(self, event_name):
         for old_part, new_part in self._event_aliases.items():
 
@@ -417,6 +420,7 @@ class EventAliaser(BaseEventHooks):
                 event_name, new_name
             ))
             return new_name
+
         return event_name
 
     def _replace_subsection(self, sections, old_parts, new_part):
