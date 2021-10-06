@@ -27,7 +27,6 @@ from dateutil.parser import parse
 from dateutil.tz import tzlocal, tzutc
 
 import botocore.configloader
-import botocore.compat
 from botocore import UNSIGNED
 from botocore.compat import total_seconds
 from botocore.compat import compat_shell_split
@@ -347,18 +346,6 @@ class Credentials(object):
             method = 'explicit'
         self.method = method
 
-        self._normalize()
-
-    def _normalize(self):
-        # Keys would sometimes (accidentally) contain non-ascii characters.
-        # It would cause a confusing UnicodeDecodeError in Python 2.
-        # We explicitly convert them into unicode to avoid such error.
-        #
-        # Eventually the service will decide whether to accept the credential.
-        # This also complies with the behavior in Python 3.
-        self.access_key = botocore.compat.ensure_unicode(self.access_key)
-        self.secret_key = botocore.compat.ensure_unicode(self.secret_key)
-
     def get_frozen_credentials(self):
         return ReadOnlyCredentials(self.access_key,
                                    self.secret_key,
@@ -396,11 +383,6 @@ class RefreshableCredentials(Credentials):
         self.method = method
         self._frozen_credentials = ReadOnlyCredentials(
             access_key, secret_key, token)
-        self._normalize()
-
-    def _normalize(self):
-        self._access_key = botocore.compat.ensure_unicode(self._access_key)
-        self._secret_key = botocore.compat.ensure_unicode(self._secret_key)
 
     @classmethod
     def create_from_metadata(cls, metadata, refresh_using, method):
@@ -986,7 +968,7 @@ class ProcessProvider(CredentialProvider):
         if p.returncode != 0:
             raise CredentialRetrievalError(
                 provider=self.METHOD, error_msg=stderr.decode('utf-8'))
-        parsed = botocore.compat.json.loads(stdout.decode('utf-8'))
+        parsed = json.loads(stdout.decode('utf-8'))
         version = parsed.get('Version', '<Version key not provided>')
         if version != 1:
             raise CredentialRetrievalError(

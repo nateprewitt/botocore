@@ -20,9 +20,13 @@ import copy
 import logging
 import socket
 
-import botocore.exceptions
-import botocore.serialize
-import botocore.utils
+from botocore.exceptions import (
+    InvalidS3UsEast1RegionalEndpointConfigError,
+    InvalidSTSRegionalEndpointsConfigError
+)
+from botocore.parsers import create_parser
+from botocore.serialize import create_serializer
+from botocore.utils import ensure_boolean
 from botocore.signers import RequestSigner
 from botocore.config import Config
 from botocore.endpoint import EndpointCreator
@@ -107,9 +111,9 @@ class ClientArgsCreator(object):
             client_cert=new_config.client_cert,
             proxies_config=new_config.proxies_config)
 
-        serializer = botocore.serialize.create_serializer(
+        serializer = create_serializer(
             protocol, parameter_validation)
-        response_parser = botocore.parsers.create_parser(protocol)
+        response_parser = create_parser(protocol)
         return {
             'serializer': serializer,
             'endpoint': endpoint,
@@ -134,7 +138,7 @@ class ClientArgsCreator(object):
         elif scoped_config:
             raw_value = scoped_config.get('parameter_validation')
             if raw_value is not None:
-                parameter_validation = botocore.utils.ensure_boolean(raw_value)
+                parameter_validation = ensure_boolean(raw_value)
 
         # Override the user agent if specified in the client config.
         user_agent = self._user_agent
@@ -249,8 +253,7 @@ class ClientArgsCreator(object):
 
     def _validate_s3_regional_config(self, config_val):
         if config_val not in VALID_REGIONAL_ENDPOINTS_CONFIG:
-            raise botocore.exceptions.\
-                InvalidS3UsEast1RegionalEndpointConfigError(
+            raise InvalidS3UsEast1RegionalEndpointConfigError(
                     s3_us_east_1_regional_endpoint_config=config_val)
 
     def _set_region_if_custom_s3_endpoint(self, endpoint_config,
@@ -288,7 +291,7 @@ class ClientArgsCreator(object):
             sts_regional_endpoints_config = 'legacy'
         if sts_regional_endpoints_config not in \
                 VALID_REGIONAL_ENDPOINTS_CONFIG:
-            raise botocore.exceptions.InvalidSTSRegionalEndpointsConfigError(
+            raise InvalidSTSRegionalEndpointsConfigError(
                 sts_regional_endpoints_config=sts_regional_endpoints_config)
         return sts_regional_endpoints_config
 

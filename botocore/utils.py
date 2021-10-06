@@ -28,9 +28,8 @@ import warnings
 import dateutil.parser
 from dateutil.tz import tzutc
 
-import botocore
 import botocore.awsrequest
-import botocore.httpsession
+from botocore.httpsession import URLLib3Session
 from botocore.compat import (
         json, quote, zip_longest, urlsplit, urlunsplit, OrderedDict,
         six, urlparse, get_tzinfo_options, get_md5, MD5_AVAILABLE,
@@ -363,7 +362,7 @@ class IMDSFetcher(object):
         self._disabled = env.get('AWS_EC2_METADATA_DISABLED', 'false').lower()
         self._disabled = self._disabled == 'true'
         self._user_agent = user_agent
-        self._session = botocore.httpsession.URLLib3Session(
+        self._session = URLLib3Session(
             timeout=self._timeout,
             proxies=get_environ_proxies(self._base_url),
         )
@@ -2264,7 +2263,7 @@ class ContainerMetadataFetcher(object):
 
     def __init__(self, session=None, sleep=time.sleep):
         if session is None:
-            session = botocore.httpsession.URLLib3Session(
+            session = URLLib3Session(
                 timeout=self.TIMEOUT_SECONDS
             )
         self._session = session
@@ -2283,7 +2282,7 @@ class ContainerMetadataFetcher(object):
         return self._retrieve_credentials(full_url, headers)
 
     def _validate_allowed_url(self, full_url):
-        parsed = botocore.compat.urlparse(full_url)
+        parsed = urlparse(full_url)
         is_whitelisted_host = self._check_if_whitelisted_host(
             parsed.hostname)
         if not is_whitelisted_host:
@@ -2328,8 +2327,7 @@ class ContainerMetadataFetcher(object):
 
     def _get_response(self, full_url, headers, timeout):
         try:
-            AWSRequest = botocore.awsrequest.AWSRequest
-            request = AWSRequest(method='GET', url=full_url, headers=headers)
+            request = botocore.awsrequest.AWSRequest(method='GET', url=full_url, headers=headers)
             response = self._session.send(request.prepare())
             response_text = response.content.decode('utf-8')
             if response.status_code != 200:

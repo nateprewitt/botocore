@@ -18,7 +18,7 @@ import sys
 
 from botocore.compat import six
 
-import botocore.exceptions
+from botocore.exceptions import ConfigNotFound, ConfigParseError
 
 
 def multi_file_load_config(*filenames):
@@ -74,7 +74,7 @@ def multi_file_load_config(*filenames):
     for filename in filenames:
         try:
             loaded = load_config(filename)
-        except botocore.exceptions.ConfigNotFound:
+        except ConfigNotFound:
             continue
         profiles.append(loaded.pop('profiles'))
         configs.append(loaded)
@@ -143,12 +143,12 @@ def raw_config_parse(config_filename, parse_subsections=True):
         path = os.path.expandvars(path)
         path = os.path.expanduser(path)
         if not os.path.isfile(path):
-            raise botocore.exceptions.ConfigNotFound(path=_unicode_path(path))
+            raise ConfigNotFound(path=_unicode_path(path))
         cp = six.moves.configparser.RawConfigParser()
         try:
             cp.read([path])
         except (six.moves.configparser.Error, UnicodeDecodeError):
-            raise botocore.exceptions.ConfigParseError(
+            raise ConfigParseError(
                 path=_unicode_path(path))
         else:
             for section in cp.sections():
@@ -162,7 +162,7 @@ def raw_config_parse(config_filename, parse_subsections=True):
                         try:
                             config_value = _parse_nested(config_value)
                         except ValueError:
-                            raise botocore.exceptions.ConfigParseError(
+                            raise ConfigParseError(
                                 path=_unicode_path(path))
                     config[section][option] = config_value
     return config
