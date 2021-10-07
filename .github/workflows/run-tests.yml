@@ -24,10 +24,11 @@ jobs:
     - name: Install dependencies
       run: |
         pip install codecov
+        pip install pytest-xdist
         python scripts/ci/install
     - name: Run tests
       run: |
-        python scripts/ci/run-tests --with-cov
+        python scripts/ci/run-tests --with-cov --with-xdist
     - name: codecov
       run: |
         rm tests/coverage.xml
