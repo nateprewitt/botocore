@@ -82,9 +82,9 @@ class TestRDSPresignUrlInjection(BaseSessionTest):
             self.assert_presigned_url_injected_in_request(sent_request.body)
 
 
-class TestRDS(unittest.TestCase):
+class TestRDS(BaseSessionTest):
     def setUp(self):
-        self.session = botocore.session.get_session()
+        super().setUp()
         self.client = self.session.create_client('rds', 'us-west-2')
         self.stubber = Stubber(self.client)
         self.stubber.activate()
