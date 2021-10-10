@@ -25,7 +25,8 @@ class TestRDSPagination(unittest.TestCase):
     def test_can_paginate_reserved_instances(self):
         # Using an operation that we know will paginate.
         paginator = self.client.get_paginator(
-            'describe_reserved_db_instances_offerings')
+            'describe_reserved_db_instances_offerings'
+        )
         generator = paginator.paginate()
         results = list(itertools.islice(generator, 0, 3))
         self.assertEqual(len(results), 3)
@@ -33,7 +34,8 @@ class TestRDSPagination(unittest.TestCase):
 
     def test_can_paginate_orderable_db(self):
         paginator = self.client.get_paginator(
-            'describe_orderable_db_instance_options')
+            'describe_orderable_db_instance_options'
+        )
         generator = paginator.paginate(Engine='mysql')
         results = list(itertools.islice(generator, 0, 2))
         self.assertEqual(len(results), 2)
