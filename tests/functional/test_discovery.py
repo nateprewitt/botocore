@@ -24,7 +24,7 @@ from botocore.exceptions import (
 
 class TestEndpointDiscovery(FunctionalSessionTest):
     def setUp(self):
-        super(TestEndpointDiscovery, self).setUp()
+        super().setUp()
         self.region = 'us-west-2'
 
     def create_client(

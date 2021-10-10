@@ -90,7 +90,7 @@ class TestPythonDefault(unittest.TestCase):
 
 class TestGetOfficialServiceName(BaseDocsTest):
     def setUp(self):
-        super(TestGetOfficialServiceName, self).setUp()
+        super().setUp()
         self.service_model.metadata = {
             'serviceFullName': 'Official Name'
         }
@@ -118,7 +118,7 @@ class TestGetOfficialServiceName(BaseDocsTest):
 
 class TestAutopopulatedParam(BaseDocsTest):
     def setUp(self):
-        super(TestAutopopulatedParam, self).setUp()
+        super().setUp()
         self.name = 'MyMember'
         self.param = AutoPopulatedParam(self.name)
 
@@ -180,7 +180,7 @@ class TestAutopopulatedParam(BaseDocsTest):
 
 class TestHideParamFromOperations(BaseDocsTest):
     def setUp(self):
-        super(TestHideParamFromOperations, self).setUp()
+        super().setUp()
         self.name = 'MyMember'
         self.param = HideParamFromOperations(
             's3', self.name, ['SampleOperation'])
@@ -209,7 +209,7 @@ class TestHideParamFromOperations(BaseDocsTest):
 
 class TestAppendParamDocumentation(BaseDocsTest):
     def setUp(self):
-        super(TestAppendParamDocumentation, self).setUp()
+        super().setUp()
         self.name = 'MyMember'
         self.param = AppendParamDocumentation(self.name, 'hello!')
 

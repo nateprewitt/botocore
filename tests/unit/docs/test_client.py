@@ -17,7 +17,7 @@ from botocore.docs.client import ClientDocumenter, ClientExceptionsDocumenter
 
 class TestClientDocumenter(BaseDocsTest):
     def setUp(self):
-        super(TestClientDocumenter, self).setUp()
+        super().setUp()
         exception_shape = {
             'SomeException': {
                 'exception': True,

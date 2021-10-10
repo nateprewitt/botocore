@@ -24,7 +24,7 @@ from botocore.handlers import set_list_objects_encoding_type_url
 class TestS3Addressing(BaseSessionTest):
 
     def setUp(self):
-        super(TestS3Addressing, self).setUp()
+        super().setUp()
         self.region_name = 'us-east-1'
         self.signature_version = 's3'
 
@@ -69,7 +69,7 @@ class TestS3Addressing(BaseSessionTest):
     def test_list_objects_unicode_query_string_eu_central_1(self):
         self.region_name = 'eu-central-1'
         params = OrderedDict([('Bucket', 'safename'),
-                             ('Marker', u'\xe4\xf6\xfc-01.txt')])
+                             ('Marker', '\xe4\xf6\xfc-01.txt')])
         prepared_request = self.get_prepared_request('list_objects', params)
         self.assertEqual(
             prepared_request.url,

@@ -18,7 +18,7 @@ from botocore.paginate import PaginatorModel
 
 class TestPaginatorDocumenter(BaseDocsTest):
     def setUp(self):
-        super(TestPaginatorDocumenter, self).setUp()
+        super().setUp()
         self.add_shape_to_params('Biz', 'String')
         self.extra_setup()
 

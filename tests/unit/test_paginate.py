@@ -14,7 +14,6 @@
 from tests import mock, unittest
 
 from botocore import model
-from botocore.compat import six
 from botocore.exceptions import PaginationError
 from botocore.paginate import (
     Paginator,
@@ -147,7 +146,7 @@ class TestPagination(unittest.TestCase):
         result = self.paginator.paginate(PaginationConfig={'MaxItems': 1})
         result = result.build_full_result()
         token = result.get('NextToken')
-        self.assertIsInstance(token, six.string_types)
+        self.assertIsInstance(token, (str,))
 
     def test_any_passed_in_args_are_unmodified(self):
         responses = [{'NextToken': 'token1'},

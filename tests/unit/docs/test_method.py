@@ -25,7 +25,7 @@ from botocore.hooks import HierarchicalEmitter
 
 
 class TestGetInstanceMethods(unittest.TestCase):
-    class MySampleClass(object):
+    class MySampleClass:
         def _internal_method(self):
             pass
 
@@ -43,7 +43,7 @@ class TestGetInstanceMethods(unittest.TestCase):
 
 class TestDocumentModelDrivenSignature(BaseDocsTest):
     def setUp(self):
-        super(TestDocumentModelDrivenSignature, self).setUp()
+        super().setUp()
         self.add_shape_to_params('Foo', 'String')
         self.add_shape_to_params('Bar', 'String', is_required=True)
         self.add_shape_to_params('Baz', 'String')
@@ -108,7 +108,7 @@ class TestDocumentCustomMethod(BaseDocsTest):
 
 class TestDocumentModelDrivenMethod(BaseDocsTest):
     def setUp(self):
-        super(TestDocumentModelDrivenMethod, self).setUp()
+        super().setUp()
         self.event_emitter = HierarchicalEmitter()
         self.add_shape_to_params('Bar', 'String')
 

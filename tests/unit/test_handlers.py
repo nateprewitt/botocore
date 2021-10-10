@@ -60,7 +60,7 @@ class TestHandlers(BaseSessionTest):
         original = base64.b64encode(b'before\xffafter').decode('utf-8')
         parsed = {'Output': original}
         handlers.decode_console_output(parsed)
-        self.assertEqual(parsed['Output'], u'before\ufffdafter')
+        self.assertEqual(parsed['Output'], 'before\ufffdafter')
 
     def test_noop_if_output_key_does_not_exist(self):
         original = {'foo': 'bar'}
@@ -786,12 +786,12 @@ class TestHandlers(BaseSessionTest):
 
     def test_validate_non_ascii_metadata_values(self):
         with self.assertRaises(ParamValidationError):
-            handlers.validate_ascii_metadata({'Metadata': {'foo': u'\u2713'}})
+            handlers.validate_ascii_metadata({'Metadata': {'foo': '\u2713'}})
 
     def test_validate_non_ascii_metadata_keys(self):
         with self.assertRaises(ParamValidationError):
             handlers.validate_ascii_metadata(
-                {'Metadata': {u'\u2713': 'bar'}})
+                {'Metadata': {'\u2713': 'bar'}})
 
     def test_validate_non_triggered_when_no_md_specified(self):
         original = {'NotMetadata': ''}
@@ -823,7 +823,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object(parsed, context=context)
-        self.assertEqual(parsed['Contents'][0]['Key'], u'\xe7\xf6s%asd\x08')
+        self.assertEqual(parsed['Contents'][0]['Key'], '\xe7\xf6s%asd\x08')
 
     def test_decode_list_objects_does_not_decode_without_context(self):
         parsed = {
@@ -831,7 +831,7 @@ class TestHandlers(BaseSessionTest):
             'EncodingType': 'url',
         }
         handlers.decode_list_object(parsed, context={})
-        self.assertEqual(parsed['Contents'][0]['Key'], u'%C3%A7%C3%B6s%25asd')
+        self.assertEqual(parsed['Contents'][0]['Key'], '%C3%A7%C3%B6s%25asd')
 
     def test_decode_list_objects_with_marker(self):
         parsed = {
@@ -840,7 +840,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object(parsed, context=context)
-        self.assertEqual(parsed['Marker'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['Marker'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_with_nextmarker(self):
         parsed = {
@@ -849,7 +849,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object(parsed, context=context)
-        self.assertEqual(parsed['NextMarker'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['NextMarker'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_with_common_prefixes(self):
         parsed = {
@@ -859,7 +859,7 @@ class TestHandlers(BaseSessionTest):
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object(parsed, context=context)
         self.assertEqual(parsed['CommonPrefixes'][0]['Prefix'],
-                         u'\xe7\xf6s% asd\x08 c')
+                         '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_with_delimiter(self):
         parsed = {
@@ -868,7 +868,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object(parsed, context=context)
-        self.assertEqual(parsed['Delimiter'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['Delimiter'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_v2(self):
         parsed = {
@@ -877,7 +877,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
-        self.assertEqual(parsed['Contents'][0]['Key'], u'\xe7\xf6s%asd\x08')
+        self.assertEqual(parsed['Contents'][0]['Key'], '\xe7\xf6s%asd\x08')
 
     def test_decode_list_objects_v2_does_not_decode_without_context(self):
         parsed = {
@@ -885,7 +885,7 @@ class TestHandlers(BaseSessionTest):
             'EncodingType': 'url',
         }
         handlers.decode_list_object_v2(parsed, context={})
-        self.assertEqual(parsed['Contents'][0]['Key'], u'%C3%A7%C3%B6s%25asd')
+        self.assertEqual(parsed['Contents'][0]['Key'], '%C3%A7%C3%B6s%25asd')
 
     def test_decode_list_objects_v2_with_delimiter(self):
         parsed = {
@@ -894,7 +894,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
-        self.assertEqual(parsed['Delimiter'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['Delimiter'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_v2_with_prefix(self):
         parsed = {
@@ -903,7 +903,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
-        self.assertEqual(parsed['Prefix'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['Prefix'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_v2_does_not_decode_continuationtoken(self):
         parsed = {
@@ -913,7 +913,7 @@ class TestHandlers(BaseSessionTest):
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
         self.assertEqual(
-            parsed['ContinuationToken'], u"%C3%A7%C3%B6s%25%20asd%08+c")
+            parsed['ContinuationToken'], "%C3%A7%C3%B6s%25%20asd%08+c")
 
     def test_decode_list_objects_v2_with_startafter(self):
         parsed = {
@@ -922,7 +922,7 @@ class TestHandlers(BaseSessionTest):
         }
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
-        self.assertEqual(parsed['StartAfter'], u'\xe7\xf6s% asd\x08 c')
+        self.assertEqual(parsed['StartAfter'], '\xe7\xf6s% asd\x08 c')
 
     def test_decode_list_objects_v2_with_common_prefixes(self):
         parsed = {
@@ -932,7 +932,7 @@ class TestHandlers(BaseSessionTest):
         context = {'encoding_type_auto_set': True}
         handlers.decode_list_object_v2(parsed, context=context)
         self.assertEqual(parsed['CommonPrefixes'][0]['Prefix'],
-                         u'\xe7\xf6s% asd\x08 c')
+                         '\xe7\xf6s% asd\x08 c')
 
     def test_set_operation_specific_signer_no_auth_type(self):
         signing_name = 'myservice'
@@ -985,7 +985,7 @@ class TestConvertStringBodyToFileLikeObject(BaseSessionTest):
         handlers.convert_body_to_file_like_object(params)
         self.assertTrue(hasattr(params['Body'], 'read'))
         contents = params['Body'].read()
-        self.assertIsInstance(contents, six.binary_type)
+        self.assertIsInstance(contents, bytes)
         self.assertEqual(contents, body_bytes)
 
     def test_string(self):
@@ -1003,11 +1003,11 @@ class TestConvertStringBodyToFileLikeObject(BaseSessionTest):
         self.assertEqual(params['Body'], body)
 
     def test_unicode(self):
-        self.assert_converts_to_file_like_object_with_bytes(u'bar', b'bar')
+        self.assert_converts_to_file_like_object_with_bytes('bar', b'bar')
 
     def test_non_ascii_characters(self):
         self.assert_converts_to_file_like_object_with_bytes(
-            u'\u2713', b'\xe2\x9c\x93')
+            '\u2713', b'\xe2\x9c\x93')
 
 
 class TestRetryHandlerOrder(BaseSessionTest):
@@ -1049,7 +1049,7 @@ class TestRetryHandlerOrder(BaseSessionTest):
 
 class BaseMD5Test(BaseSessionTest):
     def setUp(self, **environ):
-        super(BaseMD5Test, self).setUp(**environ)
+        super().setUp(**environ)
         self.md5_object = mock.Mock()
         self.md5_digest = mock.Mock(return_value=b'foo')
         self.md5_object.digest = self.md5_digest
@@ -1060,7 +1060,7 @@ class BaseMD5Test(BaseSessionTest):
         self.set_md5_available()
 
     def tearDown(self):
-        super(BaseMD5Test, self).tearDown()
+        super().tearDown()
         self.md5_patch.stop()
         if self._md5_available_patch:
             self._md5_available_patch.stop()
