@@ -12,14 +12,14 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-from tests import mock
-from tests import unittest
+from tests import mock, unittest
 
 from botocore import retryhandler
 from botocore.exceptions import (
-    ChecksumError, EndpointConnectionError, ReadTimeoutError,
+    ChecksumError,
+    EndpointConnectionError,
+    ReadTimeoutError,
 )
-
 
 HTTP_500_RESPONSE = mock.Mock()
 HTTP_500_RESPONSE.status_code = 500

@@ -12,9 +12,9 @@
 # language governing permissions and limitations under the License.
 from tests import unittest
 
+import botocore.session
 from botocore.exceptions import ClientError
 from botocore.vendored import six
-import botocore.session
 
 
 class TestGlacier(unittest.TestCase):

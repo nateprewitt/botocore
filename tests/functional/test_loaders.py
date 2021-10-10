@@ -13,8 +13,9 @@
 import os
 import shutil
 
+from tests import temporary_file, unittest
+
 from botocore import loaders
-from tests import unittest, temporary_file
 
 
 class TestLoaderAllowsDataPathOverride(unittest.TestCase):

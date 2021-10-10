@@ -11,16 +11,21 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import os
-from tests import mock, unittest, BaseEnvVar
+
+from tests import BaseEnvVar, mock, unittest
 
 import botocore
 from botocore.compat import six
 from botocore.exceptions import ClientError, WaiterConfigError, WaiterError
-from botocore.waiter import Waiter, WaiterModel, SingleWaiterConfig
-from botocore.waiter import create_waiter_with_client
-from botocore.waiter import NormalizedOperationMethod
 from botocore.loaders import Loader
 from botocore.model import ServiceModel
+from botocore.waiter import (
+    NormalizedOperationMethod,
+    SingleWaiterConfig,
+    Waiter,
+    WaiterModel,
+    create_waiter_with_client,
+)
 
 
 class TestWaiterModel(unittest.TestCase):

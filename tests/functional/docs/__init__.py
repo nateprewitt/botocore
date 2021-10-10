@@ -11,8 +11,9 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from tests import unittest
-from botocore.session import get_session
+
 from botocore.docs.service import ServiceDocumenter
+from botocore.session import get_session
 
 
 class BaseDocsFunctionalTest(unittest.TestCase):

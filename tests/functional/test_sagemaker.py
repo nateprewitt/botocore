@@ -1,5 +1,6 @@
-from botocore.stub import Stubber
 from tests import BaseSessionTest
+
+from botocore.stub import Stubber
 
 
 class TestSagemaker(BaseSessionTest):

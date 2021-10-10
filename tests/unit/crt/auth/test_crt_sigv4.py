@@ -1,10 +1,9 @@
 import pytest
-
-from tests import requires_crt, FreezeTime
+from tests import FreezeTime, requires_crt
 from tests.unit.auth.test_sigv4 import (
     DATE,
-    SERVICE,
     REGION,
+    SERVICE,
     SignatureTestCase,
     assert_equal,
     create_request_from_raw_request,

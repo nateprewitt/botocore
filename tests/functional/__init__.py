@@ -13,8 +13,9 @@
 import os
 import uuid
 
-import botocore
 from tests import BaseEnvVar
+
+import botocore
 
 _ORIGINAL = os.environ.copy()
 # These are environment variables that allow users to control

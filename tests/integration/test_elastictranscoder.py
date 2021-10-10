@@ -11,7 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-from tests import unittest, random_chars
+from tests import random_chars, unittest
 
 import botocore.session
 

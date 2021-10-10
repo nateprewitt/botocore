@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from tests.unit.docs import BaseDocsTest
+
 from botocore.docs.paginator import PaginatorDocumenter
 from botocore.paginate import PaginatorModel
 

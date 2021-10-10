@@ -19,15 +19,12 @@ import socket
 import threading
 
 import pytest
+from tests import ClientHTTPStubber, mock, temporary_file
 
-from tests import mock
-from tests import temporary_file
-from tests import ClientHTTPStubber
-from botocore import xform_name
-import botocore.session
 import botocore.config
 import botocore.exceptions
-
+import botocore.session
+from botocore import xform_name
 
 logger = logging.getLogger(__name__)
 

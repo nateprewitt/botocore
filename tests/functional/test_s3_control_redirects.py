@@ -14,20 +14,18 @@ import re
 from contextlib import contextmanager
 
 import pytest
-
-from tests import unittest, ClientHTTPStubber
+from tests import ClientHTTPStubber, unittest
 
 from botocore import exceptions
-from botocore.exceptions import (
-    UnsupportedS3ControlArnError,
-    UnsupportedS3ControlConfigurationError,
-    InvalidHostLabelError,
-    ParamValidationError,
-)
-from botocore.session import Session
 from botocore.compat import urlsplit
 from botocore.config import Config
-
+from botocore.exceptions import (
+    InvalidHostLabelError,
+    ParamValidationError,
+    UnsupportedS3ControlArnError,
+    UnsupportedS3ControlConfigurationError,
+)
+from botocore.session import Session
 
 ACCESSPOINT_ARN_TEST_CASES = [
     # Outpost accesspoint arn test cases

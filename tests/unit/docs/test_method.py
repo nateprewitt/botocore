@@ -12,13 +12,16 @@
 # language governing permissions and limitations under the License.
 from tests import unittest
 from tests.unit.docs import BaseDocsTest
-from botocore.hooks import HierarchicalEmitter
-from botocore.docs.method import document_model_driven_signature
-from botocore.docs.method import document_custom_signature
-from botocore.docs.method import document_custom_method
-from botocore.docs.method import document_model_driven_method
-from botocore.docs.method import get_instance_public_methods
+
+from botocore.docs.method import (
+    document_custom_method,
+    document_custom_signature,
+    document_model_driven_method,
+    document_model_driven_signature,
+    get_instance_public_methods,
+)
 from botocore.docs.utils import DocumentedShape
+from botocore.hooks import HierarchicalEmitter
 
 
 class TestGetInstanceMethods(unittest.TestCase):

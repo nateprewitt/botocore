@@ -10,25 +10,27 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-from tests import mock, unittest
 import json
 import re
 import socket
 import time
 
+from tests import mock, unittest
+
 from botocore.awsrequest import AWSRequest
 from botocore.compat import six
 from botocore.exceptions import ConnectionError
 from botocore.hooks import HierarchicalEmitter
-from botocore.model import OperationModel
-from botocore.model import ServiceModel
-from botocore.monitoring import Monitor
-from botocore.monitoring import MonitorEventAdapter
-from botocore.monitoring import CSMSerializer
-from botocore.monitoring import SocketPublisher
-from botocore.monitoring import BaseMonitorEvent
-from botocore.monitoring import APICallEvent
-from botocore.monitoring import APICallAttemptEvent
+from botocore.model import OperationModel, ServiceModel
+from botocore.monitoring import (
+    APICallAttemptEvent,
+    APICallEvent,
+    BaseMonitorEvent,
+    CSMSerializer,
+    Monitor,
+    MonitorEventAdapter,
+    SocketPublisher,
+)
 
 
 class PublishingException(Exception):

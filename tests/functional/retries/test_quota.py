@@ -1,6 +1,7 @@
 import random
-import time
 import threading
+import time
+
 from tests import unittest
 
 from botocore.retries import quota

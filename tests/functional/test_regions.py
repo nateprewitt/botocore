@@ -11,12 +11,10 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import pytest
+from tests import BaseSessionTest, ClientHTTPStubber, create_session, mock
 
 from botocore.client import ClientEndpointBridge
 from botocore.exceptions import NoRegionError
-
-from tests import create_session, mock, BaseSessionTest, ClientHTTPStubber
-
 
 # NOTE: sqs endpoint updated to be the CN in the SSL cert because
 # a bug in python2.6 prevents subjectAltNames from being parsed

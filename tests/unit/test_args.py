@@ -13,12 +13,10 @@
 # language governing permissions and limitations under the License.
 import socket
 
-import botocore.config
-from tests import mock
-from tests import unittest
+from tests import mock, unittest
 
-from botocore import args
-from botocore import exceptions
+import botocore.config
+from botocore import args, exceptions
 from botocore.client import ClientEndpointBridge
 from botocore.config import Config
 from botocore.configprovider import ConfigValueStore

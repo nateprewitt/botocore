@@ -1,7 +1,7 @@
 from tests import unittest
 
-from botocore.retries import bucket
 from botocore.exceptions import CapacityNotAvailableError
+from botocore.retries import bucket
 
 
 class FakeClock(bucket.Clock):

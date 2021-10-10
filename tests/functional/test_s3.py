@@ -15,25 +15,29 @@ import datetime
 import re
 
 import pytest
-
 from tests import (
-    create_session, mock, temporary_file, requires_crt, unittest,
-    BaseSessionTest, ClientHTTPStubber, FreezeTime
+    BaseSessionTest,
+    ClientHTTPStubber,
+    FreezeTime,
+    create_session,
+    mock,
+    requires_crt,
+    temporary_file,
+    unittest,
 )
 
 import botocore.session
+from botocore import UNSIGNED
+from botocore.compat import get_md5, parse_qs, urlsplit
 from botocore.config import Config
-from botocore.compat import urlsplit, parse_qs, get_md5
 from botocore.exceptions import (
-    ParamValidationError,
     ClientError,
-    UnsupportedS3ConfigurationError,
-    UnsupportedS3AccesspointConfigurationError,
     InvalidS3UsEast1RegionalEndpointConfigError,
+    ParamValidationError,
+    UnsupportedS3AccesspointConfigurationError,
+    UnsupportedS3ConfigurationError,
 )
 from botocore.parsers import ResponseParserError
-from botocore import UNSIGNED
-
 
 DATE = datetime.datetime(2021, 8, 27, 0, 0, 0)
 

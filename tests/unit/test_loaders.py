@@ -19,17 +19,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import os
 import contextlib
 import copy
+import os
+
+from tests import BaseEnvVar, mock
 
 from botocore.exceptions import DataNotFoundError, UnknownServiceError
-from botocore.loaders import JSONFileLoader
-from botocore.loaders import Loader, create_loader
-from botocore.loaders import ExtrasProcessor
-
-from tests import mock
-from tests import BaseEnvVar
+from botocore.loaders import (
+    ExtrasProcessor,
+    JSONFileLoader,
+    Loader,
+    create_loader,
+)
 
 
 class TestJSONFileLoader(BaseEnvVar):

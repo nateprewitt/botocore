@@ -10,11 +10,14 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-from tests import unittest, mock
-from botocore.docs.docstring import LazyLoadedDocstring
-from botocore.docs.docstring import ClientMethodDocstring
-from botocore.docs.docstring import WaiterDocstring
-from botocore.docs.docstring import PaginatorDocstring
+from tests import mock, unittest
+
+from botocore.docs.docstring import (
+    ClientMethodDocstring,
+    LazyLoadedDocstring,
+    PaginatorDocstring,
+    WaiterDocstring,
+)
 
 
 class MockedLazyLoadedDocstring(LazyLoadedDocstring):

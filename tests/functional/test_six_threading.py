@@ -9,7 +9,6 @@ from tests import mock
 
 from botocore.vendored import six
 
-
 _original_setattr = six.moves.__class__.__setattr__
 
 

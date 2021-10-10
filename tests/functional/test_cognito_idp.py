@@ -11,9 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import pytest
-
-from tests import create_session, mock, ClientHTTPStubber
-
+from tests import ClientHTTPStubber, create_session, mock
 
 OPERATION_PARAMS = {
     'change_password': {

@@ -1,5 +1,4 @@
 import pytest
-
 from tests import unittest
 
 from botocore import model

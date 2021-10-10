@@ -12,10 +12,13 @@
 # language governing permissions and limitations under the License.
 from tests import mock
 from tests.unit.docs import BaseDocsTest
-from botocore.hooks import HierarchicalEmitter
-from botocore.docs.params import RequestParamsDocumenter
-from botocore.docs.params import ResponseParamsDocumenter
+
+from botocore.docs.params import (
+    RequestParamsDocumenter,
+    ResponseParamsDocumenter,
+)
 from botocore.docs.utils import DocumentedShape
+from botocore.hooks import HierarchicalEmitter
 
 
 class BaseParamsDocumenterTest(BaseDocsTest):

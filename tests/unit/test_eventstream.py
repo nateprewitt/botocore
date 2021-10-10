@@ -12,17 +12,23 @@
 # language governing permissions and limitations under the License.
 """Unit tests for the binary event stream decoder. """
 import pytest
-
 from tests import mock
 
-from botocore.parsers import EventStreamXMLParser
 from botocore.eventstream import (
-    EventStreamMessage, MessagePrelude, EventStreamBuffer,
-    ChecksumMismatch, InvalidPayloadLength, InvalidHeadersLength,
-    DuplicateHeader, EventStreamHeaderParser, DecodeUtils, EventStream,
-    NoInitialResponseError
+    ChecksumMismatch,
+    DecodeUtils,
+    DuplicateHeader,
+    EventStream,
+    EventStreamBuffer,
+    EventStreamHeaderParser,
+    EventStreamMessage,
+    InvalidHeadersLength,
+    InvalidPayloadLength,
+    MessagePrelude,
+    NoInitialResponseError,
 )
 from botocore.exceptions import EventStreamError
+from botocore.parsers import EventStreamXMLParser
 
 EMPTY_MESSAGE = (
     b'\x00\x00\x00\x10\x00\x00\x00\x00\x05\xc2H\xeb}\x98\xc8\xff',

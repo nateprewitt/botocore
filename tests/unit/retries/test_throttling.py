@@ -1,6 +1,5 @@
 from tests import unittest
 
-
 from botocore.retries import throttling
 
 

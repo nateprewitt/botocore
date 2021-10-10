@@ -1,6 +1,6 @@
 from tests import BaseSessionTest, ClientHTTPStubber
-from botocore.history import BaseHistoryHandler
-from botocore.history import get_global_history_recorder
+
+from botocore.history import BaseHistoryHandler, get_global_history_recorder
 
 
 class RecordingHandler(BaseHistoryHandler):

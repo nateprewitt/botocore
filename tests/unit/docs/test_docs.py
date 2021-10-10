@@ -16,8 +16,9 @@ import tempfile
 
 from tests import mock
 from tests.unit.docs import BaseDocsTest
-from botocore.session import get_session
+
 from botocore.docs import generate_docs
+from botocore.session import get_session
 
 
 class TestGenerateDocs(BaseDocsTest):
