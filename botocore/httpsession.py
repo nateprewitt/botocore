@@ -24,6 +24,7 @@ from urllib3.util.ssl_ import (
     PROTOCOL_TLS,
     OP_NO_SSLv2,
     OP_NO_SSLv3,
+    SSLContext,
     is_ipaddress,
     ssl,
 )
@@ -35,12 +36,6 @@ except ImportError:
     # Fallback directly to ssl for version of urllib3 before 1.26.
     # They are available in the standard library starting in Python 3.6.
     from ssl import OP_NO_TICKET, PROTOCOL_TLS_CLIENT
-
-try:
-    # Always import the original SSLContext, even if it has been patched
-    from urllib3.contrib.pyopenssl import orig_util_SSLContext as SSLContext
-except ImportError:
-    from urllib3.util.ssl_ import SSLContext
 
 import botocore.awsrequest
 from botocore.compat import (
