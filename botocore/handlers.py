@@ -1060,24 +1060,18 @@ def remove_bucket_from_url_paths_from_model(params, model, context, **kwargs):
 def remove_accid_host_prefix_from_model(params, model, context, **kwargs):
     """Removes the `{AccountId}.` prefix from the operation model.
 
-    This change is applied to the operation model during the first time the
-    operation is invoked and then stays in effect for the lifetime of the
-    client object.
+    This change is applied to the s3control operation model during the first
+    time the operation is invoked and then stays in effect for the lifetime
+    of the client object.
 
     When the ruleset based endpoint resolver is in effect, both the endpoint
     ruleset AND the service model place the {AccountId}. prefix in the URL.
     The result is an invalid endpoint. This handler modifies the operation
-    model to remove the `endpoint.hostPrefix` field while leaving the
-    `RequiresAccountId` static context parameter in place.
+    model to remove the `endpoint.hostPrefix` field.
     """
-    has_ctx_param = any(
-        ctx_param.name == 'RequiresAccountId' and ctx_param.value is True
-        for ctx_param in model.static_context_parameters
-    )
     if (
         model.endpoint is not None
         and model.endpoint.get('hostPrefix') == '{AccountId}.'
-        and has_ctx_param
     ):
         del model.endpoint['hostPrefix']
 
