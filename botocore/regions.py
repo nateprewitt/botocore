@@ -508,7 +508,6 @@ class CredentialBuiltinResolver:
     def _credentials_to_resolve(self, param_definitions, builtins):
         builtins_to_resolve = {}
         if self._credentials is None:
-            self._unset_builtin_values(self.CREDENTIAL_BUILTINS.values(), builtins)
             return builtins_to_resolve
 
         builtin_map = self._filter_builtins(self.CREDENTIAL_BUILTINS, builtins)
@@ -524,20 +523,13 @@ class CredentialBuiltinResolver:
         return value
 
     def _filter_builtins(self, builtin_map, builtins):
-        values_to_unset = []
+        values_to_ignore = []
         if self._account_id_endpoint_mode == 'disabled':
-            values_to_unset.append(EndpointResolverBuiltins.AWS_ACCOUNT_ID)
-            builtin_map = {
-                k: v for k, v in builtin_map.items() if k != 'account_id'
-            }
-        self._unset_builtin_values(values_to_unset, builtins)
+            values_to_ignore.append(EndpointResolverBuiltins.AWS_ACCOUNT_ID)
 
-        return builtin_map
-
-    def _unset_builtin_values(self, builtin_names, builtins):
-        for name in builtin_names:
-            if name in builtins:
-                builtins[name] = None
+        return {
+            k: v for k, v in builtin_map.items() if k not in values_to_ignore
+        }
 
     def _should_resolve_builtin(self, builtin_name, param_definitions):
         resolver_builtin_name = self.CREDENTIAL_BUILTINS[builtin_name]
