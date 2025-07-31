@@ -71,6 +71,7 @@ from botocore.utils import (
     determine_content_length,
     ensure_boolean,
     fix_s3_host,
+    get_current_datetime,
     get_encoding_from_headers,
     get_service_module_name,
     get_token_from_environment,
@@ -101,6 +102,9 @@ from botocore.utils import (
 from tests import FreezeTime, RawResponse, create_session, mock, unittest
 
 DATE = datetime.datetime(2021, 12, 10, 00, 00, 00)
+DATE_W_TZINFO = datetime.datetime(
+    2021, 12, 10, 00, 00, 00, tzinfo=datetime.timezone.utc
+)
 DT_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
@@ -3675,3 +3679,29 @@ def test_get_token_from_environment_returns_none(
 ):
     monkeypatch.delenv(env_var, raising=False)
     assert get_token_from_environment(signing_name) is None
+
+
+def test_fetch_current_datetime():
+    # TODO: Replace with FreezeTime once we move everything from utcnow to now
+    with mock.patch.object(
+        botocore.utils.datetime,
+        'datetime',
+        mock.Mock(wraps=datetime.datetime),
+    ) as dt:
+        dt.now.return_value = DATE_W_TZINFO
+        datetime_now = get_current_datetime()
+        assert datetime_now.tzinfo is None
+        assert datetime_now == DATE
+
+
+def test_fetch_current_datetime_with_tzinfo():
+    # TODO: Replace with FreezeTime once we move everything from utcnow to now
+    with mock.patch.object(
+        botocore.utils.datetime,
+        'datetime',
+        mock.Mock(wraps=datetime.datetime),
+    ) as dt:
+        dt.now.return_value = DATE_W_TZINFO
+        datetime_now = get_current_datetime(remove_tzinfo=False)
+        assert datetime_now.tzinfo is datetime.timezone.utc
+        assert datetime_now == DATE_W_TZINFO

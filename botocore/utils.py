@@ -3601,6 +3601,13 @@ def _get_bearer_env_var_name(signing_name):
     return f"AWS_BEARER_TOKEN_{bearer_name}"
 
 
+def get_current_datetime(remove_tzinfo=True):
+    datetime_now = datetime.datetime.now(datetime.timezone.utc)
+    if remove_tzinfo:
+        datetime_now = datetime_now.replace(tzinfo=None)
+    return datetime_now
+
+
 # This parameter is not part of the public interface and is subject to abrupt
 # breaking changes or removal without prior announcement.
 # Mapping of services that have been renamed for backwards compatibility reasons.
