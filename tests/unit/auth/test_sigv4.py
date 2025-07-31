@@ -36,7 +36,7 @@ import botocore.auth
 from botocore.awsrequest import AWSRequest
 from botocore.compat import parse_qsl, urlsplit
 from botocore.credentials import Credentials
-from tests import FreezeTime
+from tests import _FreezeTimeNow
 
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
 ACCESS_KEY = 'AKIDEXAMPLE'
@@ -93,7 +93,7 @@ def generate_test_cases():
 
 
 @pytest.mark.parametrize("test_case", generate_test_cases())
-@FreezeTime(module=botocore.auth.datetime, date=DATE)
+@_FreezeTimeNow(module=botocore.auth.datetime, date=DATE)
 def test_signature_version_4(test_case):
     _test_signature_version_4(test_case)
 

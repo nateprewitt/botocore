@@ -1,7 +1,7 @@
 import pytest
 
 import botocore
-from tests import FreezeTime, requires_crt
+from tests import _FreezeTimeNow, requires_crt
 from tests.unit.auth.test_sigv4 import (
     DATE,
     REGION,
@@ -35,6 +35,6 @@ def _test_crt_signature_version_4(test_case):
 
 @requires_crt()
 @pytest.mark.parametrize("test_case", generate_test_cases())
-@FreezeTime(module=botocore.auth.datetime, date=DATE)
+@_FreezeTimeNow(module=botocore.utils.datetime, date=DATE)
 def test_signature_version_4(test_case):
     _test_crt_signature_version_4(test_case)

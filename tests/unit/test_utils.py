@@ -99,7 +99,14 @@ from botocore.utils import (
     switch_to_virtual_host_style,
     validate_jmespath_for_set,
 )
-from tests import FreezeTime, RawResponse, create_session, mock, unittest
+from tests import (
+    FreezeTime,
+    RawResponse,
+    _FreezeTimeNow,
+    create_session,
+    mock,
+    unittest,
+)
 
 DATE = datetime.datetime(2021, 12, 10, 00, 00, 00)
 DATE_W_TZINFO = datetime.datetime(
@@ -3681,27 +3688,15 @@ def test_get_token_from_environment_returns_none(
     assert get_token_from_environment(signing_name) is None
 
 
+@_FreezeTimeNow(botocore.utils.datetime, date=DATE_W_TZINFO)
 def test_fetch_current_datetime():
-    # TODO: Replace with FreezeTime once we move everything from utcnow to now
-    with mock.patch.object(
-        botocore.utils.datetime,
-        'datetime',
-        mock.Mock(wraps=datetime.datetime),
-    ) as dt:
-        dt.now.return_value = DATE_W_TZINFO
-        datetime_now = get_current_datetime()
-        assert datetime_now.tzinfo is None
-        assert datetime_now == DATE
+    datetime_now = get_current_datetime()
+    assert datetime_now.tzinfo is None
+    assert datetime_now == DATE
 
 
+@_FreezeTimeNow(botocore.utils.datetime, date=DATE_W_TZINFO)
 def test_fetch_current_datetime_with_tzinfo():
-    # TODO: Replace with FreezeTime once we move everything from utcnow to now
-    with mock.patch.object(
-        botocore.utils.datetime,
-        'datetime',
-        mock.Mock(wraps=datetime.datetime),
-    ) as dt:
-        dt.now.return_value = DATE_W_TZINFO
-        datetime_now = get_current_datetime(remove_tzinfo=False)
-        assert datetime_now.tzinfo is datetime.timezone.utc
-        assert datetime_now == DATE_W_TZINFO
+    datetime_now = get_current_datetime(remove_tzinfo=False)
+    assert datetime_now.tzinfo is datetime.timezone.utc
+    assert datetime_now == DATE_W_TZINFO

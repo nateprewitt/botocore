@@ -64,7 +64,9 @@ def default_s3_client():
 
 @pytest.fixture
 def mock_datetime():
-    with mock.patch('datetime.datetime', spec=True) as mock_datetime:
+    with mock.patch.object(
+        botocore.auth.datetime, 'datetime', mock.Mock(wraps=datetime.datetime)
+    ) as mock_datetime:
         yield mock_datetime
 
 
@@ -205,6 +207,7 @@ class TestS3ExpressRequests:
 
     def test_create_bucket(self, default_s3_client, mock_datetime):
         mock_datetime.utcnow.return_value = DATE
+        mock_datetime.now.return_value = DATE
 
         with ClientHTTPStubber(default_s3_client) as stubber:
             stubber.add_response()

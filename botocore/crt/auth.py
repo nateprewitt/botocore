@@ -25,7 +25,7 @@ from botocore.auth import (
 from botocore.compat import HTTPHeaders, awscrt, parse_qs, urlsplit, urlunsplit
 from botocore.exceptions import NoCredentialsError
 from botocore.useragent import register_feature_id
-from botocore.utils import percent_encode_sequence
+from botocore.utils import get_current_datetime, percent_encode_sequence
 
 
 class CrtSigV4Auth(BaseSigner):
@@ -55,9 +55,8 @@ class CrtSigV4Auth(BaseSigner):
         if self.credentials is None:
             raise NoCredentialsError()
 
-        # Use utcnow() because that's what gets mocked by tests, but set
-        # timezone because CRT assumes naive datetime is local time.
-        datetime_now = datetime.datetime.utcnow().replace(
+        # Ensure timzone is set because CRT assumes naive datetime is local time.
+        datetime_now = get_current_datetime().replace(
             tzinfo=datetime.timezone.utc
         )
 
@@ -253,9 +252,8 @@ class CrtSigV4AsymAuth(BaseSigner):
         if self.credentials is None:
             raise NoCredentialsError()
 
-        # Use utcnow() because that's what gets mocked by tests, but set
-        # timezone because CRT assumes naive datetime is local time.
-        datetime_now = datetime.datetime.utcnow().replace(
+        # Ensure timzone is set because CRT assumes naive datetime is local time.
+        datetime_now = get_current_datetime().replace(
             tzinfo=datetime.timezone.utc
         )
 

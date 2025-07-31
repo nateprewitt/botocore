@@ -40,7 +40,7 @@ from botocore.signers import (
     dsql_generate_db_connect_auth_token,
     generate_db_auth_token,
 )
-from tests import FreezeTime, assert_url_equal, mock, unittest
+from tests import _FreezeTimeNow, assert_url_equal, mock, unittest
 
 DATE = datetime.datetime(2024, 11, 7, 17, 39, 33, tzinfo=tzutc())
 
@@ -1151,7 +1151,7 @@ class TestGenerateDBAuthToken(BaseSignerTest):
         clock = datetime.datetime(2016, 11, 7, 17, 39, 33, tzinfo=tzutc())
 
         with mock.patch('datetime.datetime') as dt:
-            dt.utcnow.return_value = clock
+            dt.now.return_value = clock
             result = generate_db_auth_token(
                 self.client, hostname, port, username
             )
@@ -1196,7 +1196,7 @@ class TestDSQLGenerateDBAuthToken(BaseSignerTest):
         self.hostname = 'test.dsql.us-east-1.on.aws'
         self.action = 'DbConnect'
 
-    @FreezeTime(botocore.auth.datetime, date=DATE)
+    @_FreezeTimeNow(botocore.utils.datetime, date=DATE)
     def test_dsql_generate_db_auth_token(self):
         result = _dsql_generate_db_auth_token(
             self.client, self.hostname, self.action
@@ -1215,7 +1215,7 @@ class TestDSQLGenerateDBAuthToken(BaseSignerTest):
         # on certain systems.
         assert_url_equal('https://' + result, 'https://' + expected_result)
 
-    @FreezeTime(botocore.auth.datetime, date=DATE)
+    @_FreezeTimeNow(botocore.utils.datetime, date=DATE)
     def test_dsql_generate_db_connect_auth_token(self):
         result = dsql_generate_db_connect_auth_token(
             self.client, self.hostname
@@ -1234,7 +1234,7 @@ class TestDSQLGenerateDBAuthToken(BaseSignerTest):
         # on certain systems.
         assert_url_equal('https://' + result, 'https://' + expected_result)
 
-    @FreezeTime(botocore.auth.datetime, date=DATE)
+    @_FreezeTimeNow(botocore.utils.datetime, date=DATE)
     def test_dsql_generate_db_connect_admin_auth_token(self):
         result = dsql_generate_db_connect_admin_auth_token(
             self.client, self.hostname

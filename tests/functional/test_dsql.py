@@ -13,16 +13,15 @@
 import datetime
 
 import pytest
-from dateutil.tz import tzutc
 
 import botocore.auth
-from tests import FreezeTime
+from tests import _FreezeTimeNow
 
 HOSTNAME = "peccy.dsql.us-east-1.on.aws"
 REGION = "us-east-1"
 AWS_ACCESS_KEY_ID = "akid"
 AWS_SECRET_ACCESS_KEY = "secret"
-DATE = datetime.datetime(2024, 8, 27, tzinfo=tzutc())
+DATE = datetime.datetime(2024, 8, 27, tzinfo=datetime.timezone.utc)
 
 
 @pytest.fixture()
@@ -35,7 +34,7 @@ def client(patched_session):
     )
 
 
-@FreezeTime(botocore.auth.datetime, date=DATE)
+@_FreezeTimeNow(botocore.auth.datetime, date=DATE)
 def test_generate_db_connect_auth_token(client):
     auth_token = client.generate_db_connect_auth_token(
         Hostname=HOSTNAME, Region=REGION
@@ -50,7 +49,7 @@ def test_generate_db_connect_auth_token(client):
     assert auth_token.startswith(HOSTNAME)
 
 
-@FreezeTime(botocore.auth.datetime, date=DATE)
+@_FreezeTimeNow(botocore.auth.datetime, date=DATE)
 def test_generate_db_connect_admin_auth_token(client):
     auth_token = client.generate_db_connect_admin_auth_token(
         Hostname=HOSTNAME, Region=REGION

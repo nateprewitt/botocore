@@ -593,6 +593,34 @@ class FreezeTime(ContextDecorator):
         self.datetime_patcher.stop()
 
 
+class _FreezeTimeNow(ContextDecorator):
+    """
+    Context manager for mocking out datetime in arbitrary modules when creating
+    performing actions like signing which require point in time specificity.
+
+    :type module: module
+    :param module: reference to imported module to patch (e.g. botocore.auth.datetime)
+
+    :type date: datetime.datetime
+    :param date: datetime object specifying the output for now()
+    """
+
+    def __init__(self, module, date=None):
+        if date is None:
+            date = datetime.datetime.utcnow()
+        self.date = date
+        self.datetime_patcher = mock.patch.object(
+            module, 'datetime', mock.Mock(wraps=datetime.datetime)
+        )
+
+    def __enter__(self, *args, **kwargs):
+        mock = self.datetime_patcher.start()
+        mock.now.return_value = self.date
+
+    def __exit__(self, *args, **kwargs):
+        self.datetime_patcher.stop()
+
+
 def patch_load_service_model(
     session, monkeypatch, service_model_json, ruleset_json
 ):

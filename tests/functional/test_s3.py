@@ -31,7 +31,7 @@ from botocore.exceptions import (
 from tests import (
     BaseSessionTest,
     ClientHTTPStubber,
-    FreezeTime,
+    _FreezeTimeNow,
     create_session,
     get_checksum_cls,
     mock,
@@ -40,7 +40,7 @@ from tests import (
     unittest,
 )
 
-DATE = datetime.datetime(2021, 8, 27, 0, 0, 0)
+DATE = datetime.datetime(2021, 8, 27, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
 
 class TestS3BucketValidation(unittest.TestCase):
@@ -1230,7 +1230,7 @@ class TestAccesspointArn(BaseS3ClientConfigurationTest):
         ):
             self.client.list_objects(Bucket=arn)
 
-    @FreezeTime(botocore.auth.datetime, date=DATE)
+    @_FreezeTimeNow(botocore.auth.datetime, date=DATE)
     def _get_presigned_url(self, arn, region, config=None, endpoint_url=None):
         self.client, self.http_stubber = self.create_stubbed_s3_client(
             region_name=region,
