@@ -3611,11 +3611,12 @@ def get_token_from_environment(signing_name, environ=None):
 
     if environ is None:
         environ = os.environ
-    env_var = _get_bearer_env_var_name(signing_name)
+    env_var = get_bearer_env_var_name(signing_name)
     return environ.get(env_var)
 
 
-def _get_bearer_env_var_name(signing_name):
+def get_bearer_env_var_name(signing_name):
+    """Derives token names for bearer auth services."""
     bearer_name = signing_name.replace('-', '_').replace(' ', '_').upper()
     return f"AWS_BEARER_TOKEN_{bearer_name}"
 

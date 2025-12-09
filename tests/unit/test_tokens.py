@@ -15,6 +15,7 @@ import dateutil.parser
 import pytest
 
 from botocore.exceptions import (
+    EmptyTokenError,
     InvalidConfigError,
     SSOTokenLoadError,
     TokenRetrievalError,
@@ -384,3 +385,13 @@ def test_scoped_env_token_provider_returns_none_when_signing_name_missing():
     auth_token = provider.load_token()
 
     assert auth_token is None
+
+
+def test_scoped_env_token_provider_with_empty_token(monkeypatch):
+    signing_name = 'my-service'
+    token_env_var = 'AWS_BEARER_TOKEN_MY_SERVICE'
+    monkeypatch.setenv(token_env_var, '')
+
+    provider = ScopedEnvTokenProvider(session=mock.Mock())
+    with pytest.raises(EmptyTokenError):
+        provider.load_token(signing_name=signing_name)

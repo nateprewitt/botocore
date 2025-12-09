@@ -25,6 +25,7 @@ from botocore.compat import total_seconds
 from botocore.config import Config
 from botocore.exceptions import (
     ClientError,
+    EmptyTokenError,
     InvalidConfigError,
     TokenRetrievalError,
 )
@@ -33,6 +34,7 @@ from botocore.utils import (
     JSONFileCache,
     SSOTokenLoader,
     create_nested_client,
+    get_bearer_env_var_name,
     get_token_from_environment,
 )
 
@@ -358,6 +360,13 @@ class ScopedEnvTokenProvider:
 
         token = get_token_from_environment(signing_name, self.environ)
 
-        if token is not None:
+        if token:
             logger.info("Found token in environment variables.")
             return FrozenAuthToken(token)
+        elif token == "":
+            # Token is set but empty. This can't create a valid bearer auth header
+            # and user intent is unclear. Rather than ignore it and potentially use
+            # unwanted providers in the chain, we'll fail so the issue can be corrected.
+            raise EmptyTokenError(
+                token_name=get_bearer_env_var_name(signing_name)
+            )

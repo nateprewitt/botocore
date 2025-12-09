@@ -185,6 +185,14 @@ class TokenRetrievalError(BotoCoreError):
     fmt = 'Error when retrieving token from {provider}: {error_msg}'
 
 
+class EmptyTokenError(BotoCoreError):
+    """
+    Token found without a value.
+    """
+
+    fmt = 'Found {token_name} token was empty. Tokens must be 1 or more characters.'
+
+
 class PartialCredentialsError(BotoCoreError):
     """
     Only partial credentials were found.
