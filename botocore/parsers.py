@@ -778,21 +778,28 @@ class BaseCBORParser(ResponseParser):
     INDEFINITE_ITEM_ADDITIONAL_INFO = 31
     BREAK_CODE = 0xFF
 
-    @CachedProperty
-    def major_type_to_parsing_method_map(self):
-        return {
-            0: self._parse_unsigned_integer,
-            1: self._parse_negative_integer,
-            2: self._parse_byte_string,
-            3: self._parse_text_string,
-            4: self._parse_array,
-            5: self._parse_map,
-            6: self._parse_tag,
-            7: self._parse_simple_and_float,
-        }
+    additional_info_to_num_bytes = {
+        24: 1,
+        25: 2,
+        26: 4,
+        27: 8,
+    }
 
-    def get_peekable_stream_from_bytes(self, bytes):
-        return io.BufferedReader(io.BytesIO(bytes))
+    additional_info_simple_values = {
+        20: False,  # CBOR false
+        21: True,  # CBOR true
+        22: None,  # CBOR null
+        23: None,  # CBOR undefined
+    }
+
+    float_formats = {
+        25: ('>e', 2),
+        26: ('>f', 4),
+        27: ('>d', 8),
+    }
+
+    def get_peekable_stream_from_bytes(self, bytes_):
+        return io.BufferedReader(io.BytesIO(bytes_))
 
     def parse_data_item(self, stream):
         # CBOR data is divided into "data items", and each data item starts
@@ -804,43 +811,38 @@ class BaseCBORParser(ResponseParser):
         # how the bytes should be parsed that will be used
         additional_info = initial_byte & 0b00011111
 
-        if major_type in self.major_type_to_parsing_method_map:
-            method = self.major_type_to_parsing_method_map[major_type]
-            return method(stream, additional_info)
-        else:
-            raise ResponseParserError(
-                f"Unsupported inital byte found for data item- "
-                f"Major type:{major_type}, Additional info: "
-                f"{additional_info}"
-            )
+        method = self.major_type_to_parsing_method_map.get(major_type)
+        if method is not None:
+            return method(self, stream, additional_info)
 
-    # Major type 0 - unsigned integers
+        raise ResponseParserError(
+            f"Unsupported inital byte found for data item- "
+            f"Major type:{major_type}, Additional info: "
+            f"{additional_info}"
+        )
+
     def _parse_unsigned_integer(self, stream, additional_info):
-        additional_info_to_num_bytes = {
-            24: 1,
-            25: 2,
-            26: 4,
-            27: 8,
-        }
+        """Major type 0 - unsigned integers."""
         # Values under 24 don't need a full byte to be stored; their values are
         # instead stored as the "additional info" in the initial byte
         if additional_info < 24:
             return additional_info
-        elif additional_info in additional_info_to_num_bytes:
-            num_bytes = additional_info_to_num_bytes[additional_info]
-            return self._read_bytes_as_int(stream, num_bytes)
-        else:
-            raise ResponseParserError(
-                "Invalid CBOR integer returned from the service; unparsable "
-                f"additional info found for major type 0 or 1: {additional_info}"
-            )
 
-    # Major type 1 - negative integers
+        num_bytes = self.additional_info_to_num_bytes.get(additional_info)
+        if num_bytes is not None:
+            return self._read_bytes_as_int(stream, num_bytes)
+
+        raise ResponseParserError(
+            "Invalid CBOR integer returned from the service; unparsable "
+            f"additional info found for major type 0 or 1: {additional_info}"
+        )
+
     def _parse_negative_integer(self, stream, additional_info):
+        """Major type 1 - negative integers."""
         return -1 - self._parse_unsigned_integer(stream, additional_info)
 
-    # Major type 2 - byte string
     def _parse_byte_string(self, stream, additional_info):
+        """Major type 2 - byte string."""
         if additional_info != self.INDEFINITE_ITEM_ADDITIONAL_INFO:
             length = self._parse_unsigned_integer(stream, additional_info)
             return self._read_from_stream(stream, length)
@@ -914,27 +916,17 @@ class BaseCBORParser(ResponseParser):
     # currently boolean values, CBOR's null, and CBOR's undefined type.  All other
     # values are either floats or invalid.
     def _parse_simple_and_float(self, stream, additional_info):
-        # For major type 7, values 20-23 correspond to CBOR "simple" values
-        additional_info_simple_values = {
-            20: False,  # CBOR false
-            21: True,  # CBOR true
-            22: None,  # CBOR null
-            23: None,  # CBOR undefined
-        }
+        
         # First we check if the additional info corresponds to a supported simple value
-        if additional_info in additional_info_simple_values:
-            return additional_info_simple_values[additional_info]
+        value = self.additional_info_simple_values.get(additional_info)
+        if value is not None:
+            return value
 
         # If it's not a simple value, we need to parse it into the correct format and
         # number fo bytes
-        float_formats = {
-            25: ('>e', 2),
-            26: ('>f', 4),
-            27: ('>d', 8),
-        }
 
-        if additional_info in float_formats:
-            float_format, num_bytes = float_formats[additional_info]
+        if additional_info in self.float_formats:
+            float_format, num_bytes = self.float_formats[additional_info]
             return struct.unpack(
                 float_format, self._read_from_stream(stream, num_bytes)
             )[0]
@@ -965,6 +957,17 @@ class BaseCBORParser(ResponseParser):
                 "issue in botocore"
             )
         return value
+
+    major_type_to_parsing_method_map = {
+        0: _parse_unsigned_integer,
+        1: _parse_negative_integer,
+        2: _parse_byte_string,
+        3: _parse_text_string,
+        4: _parse_array,
+        5: _parse_map,
+        6: _parse_tag,
+        7: _parse_simple_and_float,
+    }
 
 
 class BaseEventStreamParser(ResponseParser):

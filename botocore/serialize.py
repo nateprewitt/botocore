@@ -525,6 +525,8 @@ class CBORSerializer(Serializer):
     TAG_MAJOR_TYPE = 6
     FLOAT_AND_SIMPLE_MAJOR_TYPE = 7
 
+    TIMESTAMP_TAG = 1
+
     def _serialize_data_item(self, serialized, value, shape, key=None):
         method = getattr(self, f'_serialize_type_{shape.type_name}')
         if method is None:
@@ -547,10 +549,9 @@ class CBORSerializer(Serializer):
             value
         )
         initial_byte = self._get_initial_byte(major_type, additional_info)
-        if num_bytes == 0:
-            serialized.extend(initial_byte)
-        else:
-            serialized.extend(initial_byte + value.to_bytes(num_bytes, "big"))
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(value.to_bytes(num_bytes, "big"))
 
     def _serialize_type_long(self, serialized, value, shape, key):
         self._serialize_type_integer(serialized, value, shape, key)
@@ -569,10 +570,9 @@ class CBORSerializer(Serializer):
         initial_byte = self._get_initial_byte(
             self.BLOB_MAJOR_TYPE, additional_info
         )
-        if num_bytes == 0:
-            serialized.extend(initial_byte)
-        else:
-            serialized.extend(initial_byte + length.to_bytes(num_bytes, "big"))
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(length.to_bytes(num_bytes, "big"))
         serialized.extend(value)
 
     def _serialize_type_string(self, serialized, value, shape, key):
@@ -584,12 +584,10 @@ class CBORSerializer(Serializer):
         initial_byte = self._get_initial_byte(
             self.STRING_MAJOR_TYPE, additional_info
         )
-        if num_bytes == 0:
-            serialized.extend(initial_byte + encoded)
-        else:
-            serialized.extend(
-                initial_byte + length.to_bytes(num_bytes, "big") + encoded
-            )
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(length.to_bytes(num_bytes, "big"))
+        serialized.extend(encoded)
 
     def _serialize_type_list(self, serialized, value, shape, key):
         length = len(value)
@@ -599,10 +597,9 @@ class CBORSerializer(Serializer):
         initial_byte = self._get_initial_byte(
             self.LIST_MAJOR_TYPE, additional_info
         )
-        if num_bytes == 0:
-            serialized.extend(initial_byte)
-        else:
-            serialized.extend(initial_byte + length.to_bytes(num_bytes, "big"))
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(length.to_bytes(num_bytes, "big"))
         for item in value:
             self._serialize_data_item(serialized, item, shape.member)
 
@@ -614,10 +611,9 @@ class CBORSerializer(Serializer):
         initial_byte = self._get_initial_byte(
             self.MAP_MAJOR_TYPE, additional_info
         )
-        if num_bytes == 0:
-            serialized.extend(initial_byte)
-        else:
-            serialized.extend(initial_byte + length.to_bytes(num_bytes, "big"))
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(length.to_bytes(num_bytes, "big"))
         for key_item, item in value.items():
             self._serialize_data_item(serialized, key_item, shape.key)
             self._serialize_data_item(serialized, item, shape.value)
@@ -637,12 +633,9 @@ class CBORSerializer(Serializer):
         initial_byte = self._get_initial_byte(
             self.MAP_MAJOR_TYPE, additional_info
         )
-        if num_bytes == 0:
-            serialized.extend(initial_byte)
-        else:
-            serialized.extend(
-                initial_byte + map_length.to_bytes(num_bytes, "big")
-            )
+        serialized.extend(initial_byte)
+        if num_bytes != 0:
+            serialized.extend(map_length.to_bytes(num_bytes, "big"))
 
         members = shape.members
         for member_key, member_value in value.items():
@@ -657,8 +650,7 @@ class CBORSerializer(Serializer):
 
     def _serialize_type_timestamp(self, serialized, value, shape, key):
         timestamp = self._convert_timestamp_to_str(value)
-        tag = 1  # Use tag 1 for unix timestamp
-        initial_byte = self._get_initial_byte(self.TAG_MAJOR_TYPE, tag)
+        initial_byte = self._get_initial_byte(self.TAG_MAJOR_TYPE, self.TIMESTAMP_TAG)
         serialized.extend(initial_byte)  # Tagging the timestamp
         additional_info, num_bytes = self._get_additional_info_and_num_bytes(
             timestamp
