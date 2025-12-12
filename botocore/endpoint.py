@@ -256,6 +256,23 @@ class Endpoint:
             f"response-received.{service_id}.{operation_model.name}",
             **kwargs_to_emit,
         )
+        if (
+            success_response is not None
+            and 'ResponseMetadata' in success_response[1]
+        ):
+            succ_resp = success_response[1]['ResponseMetadata']
+            succ_resp['SerializeTiming'] = context[
+                'serialize_time'
+            ]
+            succ_resp['DeserializeTiming'] = context[
+                'deserialize_time'
+            ]
+            succ_resp['RequestPayloadSize'] = (
+                request.headers['Content-Length']
+            )
+            succ_resp['ResponsePayloadSize'] = (
+                http_response.headers
+            )['Content-Length']
         return success_response, exception
 
     def _do_get_response(self, request, operation_model, context):
@@ -309,11 +326,14 @@ class Endpoint:
             response_dict=response_dict,
             customized_response_dict=customized_response_dict,
         )
+        start_time = time.time()
         parser = self._response_parser_factory.create_parser(protocol)
         parsed_response = parser.parse(
             response_dict, operation_model.output_shape
         )
         parsed_response.update(customized_response_dict)
+        end_time = time.time()
+        context['deserialize_time'] = end_time - start_time
         # Do a second parsing pass to pick up on any modeled error fields
         # NOTE: Ideally, we would push this down into the parser classes but
         # they currently have no reference to the operation or service model

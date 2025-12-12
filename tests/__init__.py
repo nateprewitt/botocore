@@ -41,6 +41,14 @@ from botocore.stub import Stubber
 
 _LOADER = botocore.loaders.Loader()
 
+class FakeRawResponse(BytesIO):
+    def stream(self, amt=1024, decode_content=None):
+        while True:
+            chunk = self.read(amt)
+            if not chunk:
+                break
+            yield chunk
+
 
 def _all_services():
     session = botocore.session.Session()
@@ -450,17 +458,8 @@ class BaseHTTPStubber:
         self.stop()
 
     def __call__(self, request, **kwargs):
-        self.requests.append(request)
-        if self.responses:
-            response = self.responses.pop(0)
-            if isinstance(response, Exception):
-                raise response
-            else:
-                return response
-        elif self._strict:
-            raise HTTPStubberException('Insufficient responses')
-        else:
-            return None
+        response_body = FakeRawResponse(request.body)
+        return AWSResponse('url', 200, request.headers, response_body)
 
 
 class ClientHTTPStubber(BaseHTTPStubber):
